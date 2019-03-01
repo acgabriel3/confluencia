@@ -1,0 +1,251 @@
+(** Fragmento Implicacional da Lógica Proposicional Intuicionista **)
+
+(** Dicas:
+
+    intro: introdução da implicação
+    exact H: a hipótese H corresponde exatamente ao que se quer provar.
+    assumption: o que se quer provar é igual a alguma das hipóteses.
+    apply H: o tipo alvo de H coincide com o que se quer provar. 
+    inversion H: aplica o(s) construtor(es) que permitem gerar a hipótese H. Se nenhum construtor pode ser aplicado, a prova é concluída. Também permite concluir que a partir do absurdo (False) se prova qualquer coisa.
+
+*)
+
+(**
+   Nos exercícios abaixos remova o comando 'Admitted' e construa uma prova para as proposições apresentadas.
+ *)
+
+Section Exercicios1.
+Variables A B C D: Prop.
+
+Lemma exercicio1 : A -> B -> A.
+Proof.
+ Admitted.
+
+Lemma exercicio2 : (A -> B -> C) -> (A -> B) -> A -> C.
+Proof.
+Admitted.
+
+Lemma exercicio3 : (A -> B) -> (C -> A) -> C -> B.
+Proof.
+Admitted.
+
+Lemma exercicio4 : (A -> B -> C) -> B -> A -> C.
+Proof.
+Admitted.
+
+Lemma exercicio5 : ((((A -> B) -> A) -> A) -> B) -> B. 
+Proof.
+Admitted.
+
+Lemma exercicio6: (A -> B) -> (B -> C) -> A -> C.
+Proof.
+Admitted.
+
+Lemma exercicio7: (A -> B -> C) -> (B -> A -> C).
+Proof.
+Admitted.
+
+Lemma exercicio8: (A -> C) -> A -> B -> C.
+Proof.
+Admitted.
+
+Lemma exercicio9: (A -> A -> B) -> A -> B.
+Proof.
+Admitted.
+
+Lemma exercicio10:  (A -> B) -> (A -> A -> B).
+Proof.
+Admitted.
+
+Lemma exercicio11: (A -> B) -> (A -> C) -> (B -> C -> D) -> A -> D.
+Proof.
+Admitted.
+
+Lemma exercicio12: ((((A -> B) -> A) -> A) -> B) -> B.
+Proof.
+Admitted.
+
+Lemma exercicio13: False -> A.
+Proof.
+  intro H.
+  inversion H.
+Qed.
+
+Lemma conj_imp: (A -> B -> C) <-> ((A /\ B ) -> C).
+Proof.
+  split.
+  - admit.
+  - Admitted.
+
+(**
+proof identation
+http://poleiro.info/posts/2013-06-27-structuring-proofs-with-bullets.html
+http://prl.ccs.neu.edu/blog/2017/02/21/bullets-are-good-for-your-coq-proofs/
+https://coq.inria.fr/refman/proof-engine/proof-handling.html
+*)
+
+End Exercicios1.
+
+Section Exercicios2.
+Variable P: Prop.
+Lemma id_p: P -> P.
+Proof.
+  intro H.
+  assumption.
+Qed.
+
+Print id_p.
+
+Lemma id_p'': P -> P.
+Proof.
+  exact (fun x:P => x).
+Qed.
+
+
+End Exercicios2.
+
+Theorem id_p': forall P, P -> P.
+Proof.
+  intros P.
+  intros P1.
+  assumption.
+Qed.
+
+Print id_p'.
+
+Theorem id_p''': forall P:Prop, P -> P.
+Proof.
+  exact (fun (P:Prop) (x:P) => x).
+Qed.
+
+Print id_p'.
+
+
+
+Lemma id_PP: forall P, (P -> P) -> (P -> P).
+Proof.
+  intros P p1 p2.
+  assumption.
+Qed.
+
+Print id_PP.
+
+Lemma id_PP': forall P, (P -> P) -> (P -> P).
+Proof.
+  exact (fun (P:Type) (x : P -> P) => x).
+Qed.
+
+Print id_PP'.
+
+Lemma imp_trans: forall P Q R, (P -> Q) -> (Q -> R) -> P -> R.
+Proof.
+  intros P.
+  intros Q.
+  intros R.
+  intros func1.
+  intros func2.
+  intros Papp.
+  pose (Qapp := func1 Papp).
+  pose (Rapp := func2 Qapp).
+  assumption.
+Qed.
+
+Lemma imp_trans_ref: forall P Q R, (P -> Q) -> (Q -> R) -> P -> R.
+Proof.
+  intros P.
+  intros Q.
+  intros R.
+  intros func1.
+  intros func2.
+  intros Papp.
+  refine (func2 _).
+  refine (func1 _).
+  assumption.
+Qed.
+
+Lemma imp_perm : forall P Q R, (P -> Q -> R) -> (Q -> P -> R).
+Proof.
+  intros P Q R.
+  intros func1.
+  intros Qapp.
+  intros Papp.
+  pose (QRapp := func1 Papp).
+  pose (Rapp := QRapp Qapp).
+  assumption.
+Qed.
+
+Lemma ignore_Q : forall P Q R, (P -> R) -> P -> Q -> R.
+Proof.
+  intros P Q R.
+  intros func1.
+  intros Papp.
+  intros Qapp.
+  pose (Rapp := func1 Papp).
+  assumption.
+Qed.
+
+Lemma ignore_Q_without_parenthesis : forall P Q R, P -> R -> P -> Q -> R.
+Proof.
+  intros P Q R.
+  intros Papp Rapp Papp2 Qapp1.
+  assumption.
+Qed.
+
+Lemma delta_imp : forall P Q, (P -> P -> Q) -> P -> Q.
+Proof.
+  intros P Q.
+  intros func1.
+  intros Papp.
+  pose (PQapp := func1 Papp).
+  pose (Qapp := PQapp Papp).
+  assumption.
+Qed.
+
+Lemma delta_impR : forall P Q, (P->Q)->(P->P->Q).
+Proof.
+  intros P Q.
+  intros func1.
+  intros Papp.
+  intros Papp2.
+  pose (Qapp := func1 Papp).
+  assumption.
+Qed.
+
+Lemma delta_impR' : forall P Q, (P->Q)->(P->P->Q).
+Proof.
+  intros P Q.
+  intros func1.
+  intros Papp.
+  intros Papp2.
+  apply func1.
+  assumption.
+Qed.
+
+Lemma diamond : forall P Q R T, (P->Q)->(P->R)->(Q->R->T)->P->T.
+Proof.
+  intros P Q R T.
+  intros func1.
+  intros func2.
+  intros func3.
+  intros Papp.
+  pose (Qapp := func1 Papp).
+  pose (Rapp := func2 Papp).
+  pose (RTapp := func3 Qapp).
+  pose (Tapp := RTapp Rapp).
+  assumption.
+Qed.
+
+Lemma weak_peirce : forall P Q, ((((P->Q)->P)->P)->Q)->Q.
+Proof.
+  intros P Q.
+  intros func1.
+  apply func1.
+  intro func2.
+  apply func2.
+  intro func3.
+  apply func1.
+  intro func4.
+  exact func3.
+Qed.
+
+Print weak_peirce.
