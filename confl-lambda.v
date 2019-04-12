@@ -31,6 +31,7 @@ Inductive pterm : Set :=
   | pterm_abs  : pterm -> pterm
   | pterm_labs  : pterm -> pterm.
 
+
 Fixpoint fv (t : pterm) : vars :=
   match t with
   | pterm_bvar i    => {}
@@ -199,13 +200,53 @@ Inductive contextual_closure (R: Rel pterm) : Rel pterm :=
   | abs_in : forall t t' L, (forall x, x \notin L -> contextual_closure R (t^x) (t'^x)) ->
                                contextual_closure R (pterm_abs t) (pterm_abs t').
 
+Inductive lcontextual_closure (R: Rel pterm) : Rel pterm :=
+  | lredex : forall t s, R t s -> lcontextual_closure R t s
+  | lapp_left : forall t t' u, lcontextual_closure R t t' -> lterm u ->
+	  		      lcontextual_closure R (pterm_app t u) (pterm_app t' u)
+  | lapp_right : forall t u u', lcontextual_closure R u u' -> lterm t ->
+	  		       lcontextual_closure R (pterm_app t u) (pterm_app t u')
+  | labs_in : forall t t' L, (forall x, x \notin L -> contextual_closure R (t^x) (t'^x)) ->
+                               lcontextual_closure R (pterm_abs t) (pterm_abs t')
+  | l_abs_in : forall t t' L, (forall x, x \notin L -> lcontextual_closure R (t^x) (t'^x)) ->
+                               lcontextual_closure R (pterm_labs t) (pterm_labs t').
+
 Definition body t := exists L, forall x, x \notin L -> term (t ^ x).
+
+Fixpoint erase (t:pterm) : pterm :=
+  match t with
+  | pterm_app t1 t2 => pterm_app (erase t1) (erase t2)
+  | pterm_abs t1 => pterm_abs (erase t1)
+  | pterm_labs t1 => pterm_abs (erase t1)
+  | _ => t
+  end.
+
+Lemma erase_idemp: forall a, erase (erase a) = erase a.
+Proof.
+  induction a.
+  - reflexivity.
+  - reflexivity.
+  - simpl.
+    rewrite IHa1.
+    rewrite IHa2.
+    reflexivity.
+  - simpl.
+    rewrite IHa; reflexivity.
+  - simpl.
+    rewrite IHa; reflexivity.
+Qed.
+    
+Inductive refltrans (red: Rel pterm) : Rel pterm :=
+| reflex: forall a b, erase a = erase b -> refltrans red a b
+| atleast1: forall a b, red a b -> refltrans red a b
+| rtrans: forall a b c, refltrans red a b -> refltrans red b c -> refltrans red a c.
 
 Inductive rule_b : Rel pterm  :=
   reg_rule_b : forall (t u:pterm),
     body t -> term u ->
     rule_b (pterm_app(pterm_abs t) u) (t ^^ u).
-Notation "t -->>B u" := (contextual_closure rule_b t u) (at level 60).
+Notation "t -->B u" := (contextual_closure rule_b t u) (at level 60).
+Notation "t -->>B u" := (refltrans (contextual_closure rule_b) t u) (at level 60).
 
 Inductive rule_lb : Rel pterm  :=
   | reg_rule_bb : forall (t u:pterm),
@@ -214,7 +255,8 @@ Inductive rule_lb : Rel pterm  :=
   | reg_rule_lb : forall (t u:pterm),
     body t -> term u ->
     rule_lb (pterm_app(pterm_labs t) u) (t ^^ u).
-Notation "t -->> u" := (contextual_closure rule_lb t u) (at level 60).
+Notation "t -->lB u" := (lcontextual_closure rule_lb t u) (at level 60).
+Notation "t -->>lB u" := (refltrans (lcontextual_closure rule_lb) t u) (at level 60).
 
 Fixpoint phi (t:pterm) : pterm :=
   match t with
@@ -226,14 +268,19 @@ Fixpoint phi (t:pterm) : pterm :=
   | _ => t
   end.
 
-Fixpoint erase (t:pterm) : pterm :=
-  match t with
-  | pterm_app t1 t2 => pterm_app (erase t1) (erase t2)
-  | pterm_abs t1 => pterm_abs (erase t1)
-  | pterm_labs t1 => pterm_abs (erase t1)
-  | _ => t
-  end.
-
-Lemma erase_prop : forall M N M' N': pterm, term M -> term N -> (M -->>B N) -> erase M' = M -> erase N' = N ->  (M' -->> N').
+Lemma erase_prop : forall M N M' N': pterm, term M -> term N -> (M -->>B N) -> erase M' = M -> erase N' = N ->  (M' -->>lB N').
 Proof.
-  Admitted.
+  intros M N M' N' HtM HtN Hred HeM HeN.
+  induction Hred.
+  - apply reflex.
+    subst.
+    rewrite erase_idemp in H.
+    rewrite erase_idemp in H.
+    assumption.
+  - apply atleast1.
+    admit.
+  - apply IHHred1. (* ajustar *)
+    + assumption.
+    + admit. (* ok *)
+    + assumption.
+    + Admitted.
