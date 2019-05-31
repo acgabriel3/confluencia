@@ -31,6 +31,11 @@ Inductive pterm : Set :=
   | pterm_abs  : pterm -> pterm
   | pterm_labs  : pterm -> pterm.
 
+(*
+Inductive ctx (t:pterm) :=
+| ctx_empty: t.
+???
+ *)
 
 Fixpoint fv (t : pterm) : vars :=
   match t with
@@ -212,6 +217,8 @@ Inductive lcontextual_closure (R: Rel pterm) : Rel pterm :=
                                lcontextual_closure R (pterm_labs t) (pterm_labs t').
 
 Definition body t := exists L, forall x, x \notin L -> term (t ^ x).
+Definition lbody t := exists L, forall x, x \notin L -> lterm (t ^ x).
+
 
 Fixpoint erase (t:pterm) : pterm :=
   match t with
@@ -267,6 +274,23 @@ Fixpoint phi (t:pterm) : pterm :=
   | pterm_abs t1 => pterm_abs (phi t1)
   | _ => t
   end.
+
+Lemma erase_prop1 : forall M N M' N': pterm, term M -> term N -> (M -->B N) -> erase M' = M -> erase N' = N ->  (M' -->lB N').
+Proof.
+  intros M N M' N' HtM HtN Hred HeM HeN.
+  induction Hred.
+  - inversion H; subst.
+    
+    rewrite erase_idemp in H.
+    rewrite erase_idemp in H.
+    assumption.
+  - apply atleast1.
+    admit.
+  - apply IHHred1. (* ajustar *)
+    + assumption.
+    + admit. (* ok *)
+    + assumption.
+    + Admitted.
 
 Lemma erase_prop : forall M N M' N': pterm, term M -> term N -> (M -->>B N) -> erase M' = M -> erase N' = N ->  (M' -->>lB N').
 Proof.
