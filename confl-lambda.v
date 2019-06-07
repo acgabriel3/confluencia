@@ -228,6 +228,17 @@ Fixpoint erase (t:pterm) : pterm :=
   | _ => t
   end.
 
+Fixpoint unerase (t:pterm) : pterm :=
+  match t with
+  | pterm_app t1 t2 =>
+    match t1 with
+    | pterm_abs t1 => pterm_app (pterm_labs (unerase t1)) (unerase t2)
+    | _ => pterm_app (unerase t1) (unerase t2)
+    end
+  | pterm_abs t1 => pterm_abs (unerase t1)
+  | _ => t
+  end.
+
 Lemma erase_idemp: forall a, erase (erase a) = erase a.
 Proof.
   induction a.
@@ -275,13 +286,76 @@ Fixpoint phi (t:pterm) : pterm :=
   | _ => t
   end.
 
+Lemma lt_preserv_str1 : forall M x, lterm M -> M = (pterm_fvar x) -> erase M = (pterm_fvar x).
+Proof.
+  intros M x H HM.
+  rewrite HM.
+  reflexivity.
+Qed.    
+
+Lemma lt_preserv_str2 : forall M M1 M2, lterm M -> M = (pterm_app M1 M2) -> erase M = (pterm_app (erase M1) (erase M2)).
+Proof.
+  intros M M1 M2 H HM.
+  rewrite HM.
+  reflexivity.
+Qed.    
+
+Lemma lt_preserv_str3 : forall M M', lterm M -> M = (pterm_abs M') -> erase M = (pterm_abs (erase M')). 
+Proof.
+  intros M M' H HM.
+  rewrite HM.
+  reflexivity.
+Qed.    
+
+Lemma lt_preserv_str4 : forall M M' N', lterm M -> M = pterm_app (pterm_labs M') N' -> erase M = pterm_app (pterm_abs (erase M')) (erase N'). 
+Proof.
+  intros M M' N' H HM.
+  rewrite HM.
+  reflexivity.
+Qed.    
+
+Lemma erase_open : forall M N: pterm, erase (M ^^ N) = (erase M) ^^ (erase N).
+Proof.
+  Admitted.
+
+(*                                       
+Lemma erase_prop : forall M N M' N': pterm, lterm M -> lterm N -> (M -->lB N) -> erase M = M' -> erase N = N' ->  (M' -->B N').
+Proof.
+  intros M N M' N' HM HN Hred HerM HerN.
+  generalize dependent N'.
+  generalize dependent M'.
+  induction Hred.
+  - induction H.
+    + intros M' HerM' N' HerN'.
+      simpl in HerM'.
+      rewrite <- HerM'.
+      rewrite erase_open in HerN'.
+      rewrite <- HerN'.
+      apply redex.
+      apply reg_rule_b.
+      * admit.
+      * admit.
+    + admit.    
+  - admit.
+  - admit.
+  - admit.
+  - Admitted.
+ *)
+
+Lemma erase_prop_str: forall M' M N , pterm_app (pterm_abs M) N = erase M' -> exists u v, erase u = M -> erase v = N -> (M' = pterm_app (pterm_labs u) v) \/ (M' = pterm_app (pterm_abs u) v).
+Proof.
+Admitted.
+
 Lemma erase_prop1 : forall M N M' N': pterm, term M -> term N -> (M -->B N) -> erase M' = M -> erase N' = N ->  (M' -->lB N').
 Proof.
   intros M N M' N' HtM HtN Hred HeM HeN.
   induction Hred.
   - inversion H; subst.
-    
-    rewrite erase_idemp in H.
+    apply erase_prop_str in H2.
+    destruct H2 as [u0].
+    destruct H2 as [v].
+    Admitted.
+   (* rewrite erase_idemp in H.
     rewrite erase_idemp in H.
     assumption.
   - apply atleast1.
@@ -290,7 +364,7 @@ Proof.
     + assumption.
     + admit. (* ok *)
     + assumption.
-    + Admitted.
+    + Admitted.*)
 
 Lemma erase_prop : forall M N M' N': pterm, term M -> term N -> (M -->>B N) -> erase M' = M -> erase N' = N ->  (M' -->>lB N').
 Proof.
