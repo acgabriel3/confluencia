@@ -314,9 +314,19 @@ Proof.
   reflexivity.
 Qed.    
 
-Lemma erase_open : forall M N: pterm, erase (M ^^ N) = (erase M) ^^ (erase N).
+Lemma erase_open_rec : forall (M N: pterm) (k : nat), erase ({k ~> N} M) = {k ~> (erase N)} (erase M).
 Proof.
-  Admitted.
+  induction M.
+  - admit.
+  - intro n. simpl.
+    reflexivity.
+  - admit.
+  - admit.
+  - Admitted.
+
+Corollary erase_open : forall M N: pterm, erase (M ^^ N) = (erase M) ^^ (erase N).
+Proof.
+Admitted.
 
 (*                                       
 Lemma erase_prop : forall M N M' N': pterm, lterm M -> lterm N -> (M -->lB N) -> erase M = M' -> erase N = N' ->  (M' -->B N').
