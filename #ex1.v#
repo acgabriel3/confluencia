@@ -96,44 +96,20 @@ Qed.
 
 Lemma exercicio8: (A -> C) -> A -> B -> C.
 Proof.
-
-intros func1 A1 B1.
-apply func1.
-exact A1.
-
-Qed.
+Admitted.
 
 Lemma exercicio9: (A -> A -> B) -> A -> B.
 Proof.
-
-intros func1 A1.
-apply func1.
-exact A1.
-exact A1.
-
-Qed.
+Admitted.
 
 Lemma exercicio10:  (A -> B) -> (A -> A -> B).
 Proof.
-
-intros func1 A1.
-exact func1.
-
-Qed.
+Admitted.
 
 Lemma exercicio11: (A -> B) -> (A -> C) -> (B -> C -> D) -> A -> D.
 Proof.
+Admitted.
 
-intros func1 func2 func3 A1.
-apply func3.
-apply func1.
-exact A1.
-apply func2.
-exact A1.
-
-Qed.
-
-(* ja provado  *)
 Lemma exercicio12: ((((A -> B) -> A) -> A) -> B) -> B.
 Proof.
 Admitted.
