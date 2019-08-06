@@ -46,6 +46,15 @@ Fixpoint fv (t : pterm) : vars :=
   | pterm_labs t1    => (fv t1)
   end.
 
+Fixpoint bv (t : pterm) : vars :=
+  match t with
+  | pterm_bvar i    => {{i}}
+  | pterm_fvar x    => {}
+  | pterm_app t1 t2 => (bv t1) \u (bv t2)
+  | pterm_abs t1    => (bv t1)
+  | pterm_labs t1    => (bv t1)
+  end.
+
 Ltac gather_vars_with F :=
   let rec gather V :=
     match goal with
@@ -319,20 +328,49 @@ Proof.
   induction M.
   - intros N K.
     simpl.
-    case_eq (K == n).
-      * intros hip1 hip2.
-        rewrite hip1.
-    
-  - intro n. simpl.
+    destruct (K === n).
+    + reflexivity.
+    + reflexivity.
+  - intros N k. 
     reflexivity.
-  - admit.
-  - admit.
-  - Admitted.
+  - intros N k.
+    simpl; f_equal.
+    + apply IHM1.
+    + apply IHM2.
+  - intros N k.
+    simpl.
+    f_equal.
+    apply IHM.
+  - intros N k.
+    simpl.
+    f_equal.
+    apply IHM.
+Qed.
 
 Corollary erase_open : forall M N: pterm, erase (M ^^ N) = (erase M) ^^ (erase N).
 Proof.
-Admitted.
+  unfold open.
+  intros M N.
+  apply  erase_open_rec.
+Qed.
 
+Lemma phi_subst_rec: forall (M N: pterm) (k: nat), phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
+Proof.
+  induction M.
+  - intros N k.
+    admit.
+  - admit.
+  - admit. 
+  - intros N k.
+    simpl.
+    f_equal.
+    apply IHM.
+  - Admitted.
+    
+Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
+Proof.
+  Admitted.
+  
 (*                                       
 Lemma erase_prop : forall M N M' N': pterm, lterm M -> lterm N -> (M -->lB N) -> erase M = M' -> erase N = N' ->  (M' -->B N').
 Proof.
