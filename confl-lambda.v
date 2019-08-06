@@ -317,7 +317,12 @@ Qed.
 Lemma erase_open_rec : forall (M N: pterm) (k : nat), erase ({k ~> N} M) = {k ~> (erase N)} (erase M).
 Proof.
   induction M.
-  - admit.
+  - intros N K.
+    simpl.
+    case_eq (K == n).
+      * intros hip1 hip2.
+        rewrite hip1.
+    
   - intro n. simpl.
     reflexivity.
   - admit.
