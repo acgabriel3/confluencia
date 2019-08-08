@@ -295,6 +295,7 @@ Fixpoint phi (t:pterm) : pterm :=
   | _ => t
   end.
 
+(*
 Lemma lt_preserv_str1 : forall M x, lterm M -> M = (pterm_fvar x) -> erase M = (pterm_fvar x).
 Proof.
   intros M x H HM.
@@ -322,6 +323,41 @@ Proof.
   rewrite HM.
   reflexivity.
 Qed.    
+ *)
+
+Lemma lterm_preserves_fvar : forall M x, erase M = (pterm_fvar x) -> M = (pterm_fvar x).
+Proof.
+  induction M.
+  - intros x H.
+    simpl in H.
+    exact H.
+  - intros x H.
+    exact H.
+  - intros x H.
+    simpl in H.
+    inversion H.
+  - intros x H.
+    simpl in H.
+    inversion H.
+  - intros x H.
+    simpl in H.
+    inversion H.
+Qed.
+
+Lemma lterm_preserves_bvar : forall M n, erase M = (pterm_bvar n) -> M = (pterm_bvar n).
+Proof.
+  Admitted.
+
+Lemma lterm_preserves_app : forall M N L, erase M = (pterm_app N L) -> exists N' L', M = (pterm_app N' L').
+Proof.
+(*
+  exists (erase N).
+  exists (erase L). *)
+  Admitted.
+
+Lemma lterm_preserves_abs : forall M N, erase M = (pterm_abs N) -> exists N', M = (pterm_abs N') \/ M = (pterm_labs N').
+Proof.
+Admitted.
 
 Lemma erase_open_rec : forall (M N: pterm) (k : nat), erase ({k ~> N} M) = {k ~> (erase N)} (erase M).
 Proof.
@@ -358,7 +394,10 @@ Lemma phi_subst_rec: forall (M N: pterm) (k: nat), phi ({k ~> N} M) = {k ~> (phi
 Proof.
   induction M.
   - intros N k.
-    admit.
+    simpl.
+    destruct (k === n).
+    + reflexivity.
+    + reflexivity.
   - admit.
   - admit. 
   - intros N k.
@@ -370,7 +409,7 @@ Proof.
 Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
 Proof.
   Admitted.
-  
+
 (*                                       
 Lemma erase_prop : forall M N M' N': pterm, lterm M -> lterm N -> (M -->lB N) -> erase M = M' -> erase N = N' ->  (M' -->B N').
 Proof.
@@ -399,9 +438,10 @@ Lemma erase_prop_str: forall M' M N , pterm_app (pterm_abs M) N = erase M' -> ex
 Proof.
 Admitted.
 
-Lemma erase_prop1 : forall M N M' N': pterm, term M -> term N -> (M -->B N) -> erase M' = M -> erase N' = N ->  (M' -->lB N').
+Lemma erase_prop1 : forall M N: pterm, term M -> term N -> (M -->B N) -> forall M' N', (erase M' = M) /\ (erase N' = N) ->  (M' -->lB N').
 Proof.
-  intros M N M' N' HtM HtN Hred HeM HeN.
+  intros M N HtM HtN Hred.
+  
   induction Hred.
   - inversion H; subst.
     apply erase_prop_str in H2.
