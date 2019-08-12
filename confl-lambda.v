@@ -370,7 +370,8 @@ Proof.
   - intros N k. 
     reflexivity.
   - intros N k.
-    simpl; f_equal.
+    simpl.
+    f_equal.
     + apply IHM1.
     + apply IHM2.
   - intros N k.
@@ -390,6 +391,7 @@ Proof.
   apply  erase_open_rec.
 Qed.
 
+
 Lemma phi_subst_rec: forall (M N: pterm) (k: nat), phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
 Proof.
   induction M.
@@ -398,14 +400,23 @@ Proof.
     destruct (k === n).
     + reflexivity.
     + reflexivity.
-  - admit.
-  - admit. 
+  - intros N k.
+    simpl.
+    reflexivity.
+  - intros N k.
+    admit.
   - intros N k.
     simpl.
     f_equal.
     apply IHM.
-  - Admitted.
+  - intros N k.
+    simpl phi.
+    f_equal.
+    admit.
     
+   Admitted.
+    
+
 Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
 Proof.
   Admitted.
