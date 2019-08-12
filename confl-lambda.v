@@ -292,6 +292,7 @@ Fixpoint phi (t:pterm) : pterm :=
                       | _ => pterm_app (phi t1) (phi t2)
                       end
   | pterm_abs t1 => pterm_abs (phi t1)
+  | pterm_labs t1 => pterm_labs (phi t1)
   | _ => t
   end.
 
@@ -391,6 +392,10 @@ Proof.
   apply  erase_open_rec.
 Qed.
 
+Lemma subst_lemma: forall (M1 M2 M3: pterm) (i k:nat), i <= k -> {i ~> {k ~> M3} M2} ({S k ~> M3} M1) = {k ~> M3} ({i ~> M2} M1).
+Proof.
+  induction M1.
+Admitted.                                                                                  
 
 Lemma phi_subst_rec: forall (M N: pterm) (k: nat), phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
 Proof.
@@ -404,7 +409,33 @@ Proof.
     simpl.
     reflexivity.
   - intros N k.
-    admit.
+    change ({k ~> N} pterm_app M1 M2) with (pterm_app ({k ~> N}M1) ({k ~> N}M2)).
+    destruct M1.
+    + admit.
+    + admit.
+    + change (phi (pterm_app ({k ~> N} pterm_app M1_1 M1_2) ({k ~> N} M2))) with  ( (pterm_app (phi({k ~> N} pterm_app M1_1 M1_2)) (phi({k ~> N} M2)))).
+      change (phi (pterm_app (pterm_app M1_1 M1_2) M2)) with  (pterm_app (phi(pterm_app M1_1 M1_2)) (phi M2)).
+      change ( {k ~> phi N} pterm_app (phi (pterm_app M1_1 M1_2)) (phi M2)) with
+          ( pterm_app ( {k ~> phi N}(phi (pterm_app M1_1 M1_2))) ( {k ~> phi N}(phi M2))).
+      f_equal.
+      * apply IHM1.
+      * apply IHM2.
+    + simpl.
+      f_equal.
+      * apply IHM1.
+      * apply IHM2.
+    + simpl.
+      rewrite IHM2.
+      unfold open.
+      simpl in IHM1.
+      assert (pterm_labs (phi ({S k ~> N} M1)) = pterm_labs ({S k ~> phi N} phi M1)).
+      {
+        apply IHM1.
+      }
+      inversion H; clear H.
+      rewrite H1.
+      apply subst_lemma.
+      apply Nat.le_0_l.
   - intros N k.
     simpl.
     f_equal.
