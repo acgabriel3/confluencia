@@ -296,6 +296,7 @@ Fixpoint phi (t:pterm) : pterm :=
   | _ => t
   end.
 
+
 (*
 Lemma lt_preserv_str1 : forall M x, lterm M -> M = (pterm_fvar x) -> erase M = (pterm_fvar x).
 Proof.
@@ -424,7 +425,7 @@ Proof.
       f_equal.
       * apply IHM1.
       * apply IHM2.
-    + simpl.
+    + simpl. (* Pedir esclarecimento dos passos abaixo novamente *)
       rewrite IHM2.
       unfold open.
       simpl in IHM1.
@@ -432,7 +433,7 @@ Proof.
       {
         apply IHM1.
       }
-      inversion H; clear H.
+      inversion H; clear H. (* O que sao o inversion e o clear *)
       rewrite H1.
       apply subst_lemma.
       apply Nat.le_0_l.
@@ -441,10 +442,9 @@ Proof.
     f_equal.
     apply IHM.
   - intros N k.
-    simpl phi.
+    simpl.
     f_equal.
-    admit.
-    
+    apply IHM.
    Admitted.
     
 
