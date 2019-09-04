@@ -361,6 +361,12 @@ Lemma lterm_preserves_abs : forall M N, erase M = (pterm_abs N) -> exists N', M 
 Proof.
 Admitted.
 
+Lemma open_rec_preserves_labs: forall t u k, (open_rec k u (pterm_labs t)) = (pterm_labs (open_rec (S k) u t)).
+Proof.
+  intros t u k .
+  reflexivity.
+Qed.
+  
 Lemma erase_open_rec : forall (M N: pterm) (k : nat), erase ({k ~> N} M) = {k ~> (erase N)} (erase M).
 Proof.
   induction M.
@@ -410,43 +416,25 @@ Proof.
     simpl.
     reflexivity.
   - intros N k.
-    change ({k ~> N} pterm_app M1 M2) with (pterm_app ({k ~> N}M1) ({k ~> N}M2)).
-    destruct M1.
+    generalize dependent M1.
+    intro M1.
+    case M1.
     + admit.
     + admit.
-    + change (phi (pterm_app ({k ~> N} pterm_app M1_1 M1_2) ({k ~> N} M2))) with  ( (pterm_app (phi({k ~> N} pterm_app M1_1 M1_2)) (phi({k ~> N} M2)))).
-      change (phi (pterm_app (pterm_app M1_1 M1_2) M2)) with  (pterm_app (phi(pterm_app M1_1 M1_2)) (phi M2)).
-      change ( {k ~> phi N} pterm_app (phi (pterm_app M1_1 M1_2)) (phi M2)) with
-          ( pterm_app ( {k ~> phi N}(phi (pterm_app M1_1 M1_2))) ( {k ~> phi N}(phi M2))).
-      f_equal.
-      * apply IHM1.
-      * apply IHM2.
-    + simpl.
-      f_equal.
-      * apply IHM1.
-      * apply IHM2.
-    + simpl. (* Pedir esclarecimento dos passos abaixo novamente *)
+    + admit.
+    + admit.
+    + intros M1' IH.
+      simpl in *.
       rewrite IHM2.
+      assert (IH' := IH N k).
+      inversion IH'.
+      rewrite H0.
       unfold open.
-      simpl in IHM1.
-      assert (pterm_labs (phi ({S k ~> N} M1)) = pterm_labs ({S k ~> phi N} phi M1)).
-      {
-        apply IHM1.
-      }
-      inversion H; clear H. (* O que sao o inversion e o clear *)
-      rewrite H1.
       apply subst_lemma.
-      apply Nat.le_0_l.
-  - intros N k.
-    simpl.
-    f_equal.
-    apply IHM.
-  - intros N k.
-    simpl.
-    f_equal.
-    apply IHM.
-   Admitted.
-    
+      apply Peano.le_0_n.
+  - admit.
+  - admit.    
+Admitted.    
 
 Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
 Proof.
