@@ -416,10 +416,17 @@ Proof.
     simpl.
     reflexivity.
   - intros N k.
-    generalize dependent M1.
+    generalize dependent M1. (* duvida no significado *)
     intro M1.
     case M1.
-    + admit.
+    + intros M1' IHM1.
+      change (phi (pterm_app (pterm_bvar M1') M2)) with  (pterm_app (phi(pterm_bvar M1')) (phi M2)).
+      change ( {k ~> phi N} pterm_app (phi (pterm_bvar M1')) (phi M2)) with
+          ( pterm_app ( {k ~> phi N}(phi (pterm_bvar M1'))) ( {k ~> phi N}(phi M2))).
+      assert( IH' := IHM1 N k).
+      change ({k ~> N} pterm_app (pterm_bvar M1') M2) with (pterm_app ({k ~> N}(pterm_bvar M1')) ({k ~> N}M2)).
+      
+      change (phi (pterm_app ({k ~> N} pterm_bvar M1') ({k ~> N} M2))) with  (pterm_app (phi({k ~> N} pterm_bvar M1')) (phi ({k ~> N} M2))).
     + admit.
     + admit.
     + admit.
