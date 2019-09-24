@@ -416,7 +416,7 @@ Proof.
     simpl.
     reflexivity.
   - intros N k.
-    generalize dependent M1. (* duvida no significado *)
+    generalize dependent M1. 
     intro M1.
     case M1.
     + intros M1' IHM1.
@@ -425,13 +425,20 @@ Proof.
           ( pterm_app ( {k ~> phi N}(phi (pterm_bvar M1'))) ( {k ~> phi N}(phi M2))).
       assert( IH' := IHM1 N k).
       change ({k ~> N} pterm_app (pterm_bvar M1') M2) with (pterm_app ({k ~> N}(pterm_bvar M1')) ({k ~> N}M2)).
-      admit.
+      admit. (* works if N is not a labeled lambda. TODO: add this condition. *)
     + intros N0 k0.
       simpl in *.
       f_equal.
       apply IHM2.
     + intros N0 k0 IHM1.
-      admit.
+      change (phi (pterm_app (pterm_app N0 k0) M2)) with (pterm_app (phi (pterm_app N0 k0)) (phi M2)).
+      change ({k ~> phi N} pterm_app (phi (pterm_app N0 k0)) (phi M2)) with (pterm_app ({k ~> phi N} (phi (pterm_app N0 k0)))({k ~> phi N} (phi M2))).
+      rewrite <- IHM1.
+      rewrite <- IHM2.
+      change ({k ~> N} pterm_app (pterm_app N0 k0) M2) with (pterm_app ({k ~> N}(pterm_app N0 k0)) ({k ~> N} M2)).
+      change (phi (pterm_app ({k ~> N} pterm_app N0 k0) ({k ~> N} M2))) with
+          (pterm_app (phi ({k ~> N} pterm_app N0 k0)) (phi ({k ~> N} M2))).
+      reflexivity.
     + intros N0 k0.
       simpl.
       f_equal.
@@ -460,6 +467,15 @@ Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N).
 Proof.
   Admitted.
 
+Lemma phi_prop: forall M N : pterm, lterm M -> lterm N -> (M -->>lB N) -> (phi M) -->>B (phi N).
+Proof.
+  intros M N Hterm1 Hterm2 H.
+  induction H.
+  -
+  -
+  -
+    
+  
 (*                                       
 Lemma erase_prop : forall M N M' N': pterm, lterm M -> lterm N -> (M -->lB N) -> erase M = M' -> erase N = N' ->  (M' -->B N').
 Proof.
