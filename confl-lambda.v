@@ -425,11 +425,18 @@ Proof.
           ( pterm_app ( {k ~> phi N}(phi (pterm_bvar M1'))) ( {k ~> phi N}(phi M2))).
       assert( IH' := IHM1 N k).
       change ({k ~> N} pterm_app (pterm_bvar M1') M2) with (pterm_app ({k ~> N}(pterm_bvar M1')) ({k ~> N}M2)).
-      
-      change (phi (pterm_app ({k ~> N} pterm_bvar M1') ({k ~> N} M2))) with  (pterm_app (phi({k ~> N} pterm_bvar M1')) (phi ({k ~> N} M2))).
-    + admit.
-    + admit.
-    + admit.
+      admit.
+    + intros N0 k0.
+      simpl in *.
+      f_equal.
+      apply IHM2.
+    + intros N0 k0 IHM1.
+      admit.
+    + intros N0 k0.
+      simpl.
+      f_equal.
+       * apply k0.
+       * apply IHM2.
     + intros M1' IH.
       simpl in *.
       rewrite IHM2.
@@ -439,8 +446,14 @@ Proof.
       unfold open.
       apply subst_lemma.
       apply Peano.le_0_n.
-  - admit.
-  - admit.    
+  - intros N k.
+    simpl.
+    f_equal.
+    apply IHM.
+  - intros N k.
+    simpl.
+    f_equal.
+    apply IHM.
 Admitted.    
 
 Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
