@@ -402,6 +402,27 @@ Qed.
 Lemma subst_lemma: forall (M1 M2 M3: pterm) (i k:nat), i <= k -> {i ~> {k ~> M3} M2} ({S k ~> M3} M1) = {k ~> M3} ({i ~> M2} M1).
 Proof.
   induction M1.
+  - intros M2 M3 i k h1.
+   admit.
+   (* Estudar como manipular os index's*)
+  - intros M2 M3 i k h1.
+   simpl.
+   reflexivity.
+  - intros M2 M3 i k h1.
+   simpl.
+   f_equal.
+   + apply IHM1_1.
+     apply h1.
+   + apply IHM1_2.
+     apply h1.
+  - intros M2 M3 i k h1.
+     simpl.
+     f_equal.
+     admit.
+  - intros M2 M3 i k h1.
+    simpl.
+    f_equal.
+    admit.
 Admitted.                                                                                  
 
 Lemma phi_subst_rec: forall (M N: pterm) (k: nat), phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
