@@ -161,19 +161,17 @@ Notation "{ k ~> u } t" := (open_rec k u t) (at level 67).
 Notation "t ^^ u" := (open t u) (at level 67). 
 Notation "t ^ x" := (open t (pterm_fvar x)).   
 
-(** Check how close operation is being used in the formalization. 
 Fixpoint close_rec  (k : nat) (x : var) (t : pterm) : pterm :=
   match t with
   | pterm_bvar i    => pterm_bvar i
   | pterm_fvar x'    => if x' == x then (pterm_bvar k) else pterm_fvar x'
   | pterm_app t1 t2 => pterm_app (close_rec k x t1) (close_rec k x t2)
   | pterm_abs t1    => pterm_abs (close_rec (S k) x t1)
-  | pterm_sub t1 t2 => pterm_sub (close_rec (S k) x t1) (close_rec k x t2)
+  | pterm_labs t1 => pterm_labs (close_rec (S k) x t1)
   end.
 
-Definition close t x := close_rec 0 x t. *)
+Definition close t x := close_rec 0 x t.
 (* end hide *)
-(** ES terms are expressions without dangling deBruijn indexes. *)
 
 Inductive term : pterm -> Prop :=
   | term_var : forall x,
@@ -228,7 +226,6 @@ Inductive lcontextual_closure (R: Rel pterm) : Rel pterm :=
 Definition body t := exists L, forall x, x \notin L -> term (t ^ x).
 Definition lbody t := exists L, forall x, x \notin L -> lterm (t ^ x).
 
-
 Fixpoint erase (t:pterm) : pterm :=
   match t with
   | pterm_app t1 t2 => pterm_app (erase t1) (erase t2)
@@ -237,6 +234,7 @@ Fixpoint erase (t:pterm) : pterm :=
   | _ => t
   end.
 
+(* ? *)
 Fixpoint unerase (t:pterm) : pterm :=
   match t with
   | pterm_app t1 t2 =>
@@ -264,7 +262,7 @@ Proof.
 Qed.
     
 Inductive refltrans (red: Rel pterm) : Rel pterm :=
-| reflex: forall a b, erase a = erase b -> refltrans red a b
+| reflex: forall a, refltrans red a a
 | atleast1: forall a b, red a b -> refltrans red a b
 | rtrans: forall a b c, refltrans red a b -> refltrans red b c -> refltrans red a c.
 
@@ -296,6 +294,36 @@ Fixpoint phi (t:pterm) : pterm :=
   | _ => t
   end.
 
+Lemma phi_term: forall t, term t -> term (phi t).
+Proof.
+  intro t; induction t.
+  - intro H; inversion H.
+  - intro H; assumption.
+  - intro H; inversion H; subst.
+    generalize dependent t1.
+    intro t1; case t1.
+    + intros n H1 H2 H4.
+      inversion H4.
+    + intros n H1 H2 H4. simpl.
+      apply IHt2 in H3.
+      apply term_app; assumption.
+    + intros t3 t4 H1 H2 H4.
+      apply IHt2 in H3.
+      change (phi (pterm_app (pterm_app t3 t4) t2)) with (pterm_app (phi(pterm_app t3 t4)) (phi t2)).
+      apply H1 in H4.
+      apply term_app; assumption.
+    + intros t3 H1 H2 H4.
+      apply IHt2 in H3.
+      simpl.
+      apply H1 in H4.
+      apply term_app; assumption.
+    + intros t3 H1 H2 H4.
+      simpl.
+      apply IHt2 in H3.
+      unfold open.
+      admit. (* work with lc_at *)
+  - admit.
+  - Admitted.
 
 (*
 Lemma lt_preserv_str1 : forall M x, lterm M -> M = (pterm_fvar x) -> erase M = (pterm_fvar x).
@@ -399,33 +427,19 @@ Proof.
   apply  erase_open_rec.
 Qed.
 
-Lemma subst_lemma: forall (M1 M2 M3: pterm) (i k:nat), i <= k -> {i ~> {k ~> M3} M2} ({S k ~> M3} M1) = {k ~> M3} ({i ~> M2} M1).
+(* pensar *)
+Lemma subst_lemma: forall (M1 M2 M3: pterm) (i k:nat), term M3 -> i <= k -> {i ~> {k ~> M3} M2} ({S k ~> M3} M1) = {k ~> M3} ({i ~> M2} M1).
 Proof.
   induction M1.
-  - intros M2 M3 i k h1.
-   admit.
-   (* Estudar como manipular os index's*)
-  - intros M2 M3 i k h1.
-   simpl.
-   reflexivity.
-  - intros M2 M3 i k h1.
-   simpl.
-   f_equal.
-   + apply IHM1_1.
-     apply h1.
-   + apply IHM1_2.
-     apply h1.
-  - intros M2 M3 i k h1.
-     simpl.
-     f_equal.
-     admit.
-  - intros M2 M3 i k h1.
-    simpl.
-    f_equal.
-    admit.
+  - intros M2 M3 i k Hterm Hleq.
+    case (n === S k).
+    + intro Heq; subst.
+      replace ({S k ~> M3} pterm_bvar (S k)) with M3.
+      * case (i === S k).
+        ** intro Heq; subst.
+           replace ({S k ~> M2} pterm_bvar (S k)) with M2.
 Admitted.                                                                                  
-
-Lemma phi_subst_rec: forall (M N: pterm) (k: nat), phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
+Lemma phi_subst_rec: forall (M N: pterm) (k: nat), term N -> phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
 Proof.
   induction M.
   - intros N k.
@@ -450,38 +464,39 @@ Proof.
     + intros N0 k0.
       simpl in *.
       f_equal.
-      apply IHM2.
-    + intros N0 k0 IHM1.
-      change (phi (pterm_app (pterm_app N0 k0) M2)) with (pterm_app (phi (pterm_app N0 k0)) (phi M2)).
-      change ({k ~> phi N} pterm_app (phi (pterm_app N0 k0)) (phi M2)) with (pterm_app ({k ~> phi N} (phi (pterm_app N0 k0)))({k ~> phi N} (phi M2))).
-      rewrite <- IHM1.
-      rewrite <- IHM2.
-      change ({k ~> N} pterm_app (pterm_app N0 k0) M2) with (pterm_app ({k ~> N}(pterm_app N0 k0)) ({k ~> N} M2)).
-      change (phi (pterm_app ({k ~> N} pterm_app N0 k0) ({k ~> N} M2))) with
-          (pterm_app (phi ({k ~> N} pterm_app N0 k0)) (phi ({k ~> N} M2))).
-      reflexivity.
-    + intros N0 k0.
-      simpl.
-      f_equal.
-       * apply k0.
-       * apply IHM2.
-    + intros M1' IH.
-      simpl in *.
-      rewrite IHM2.
-      assert (IH' := IH N k).
-      inversion IH'.
-      rewrite H0.
-      unfold open.
-      apply subst_lemma.
-      apply Peano.le_0_n.
-  - intros N k.
-    simpl.
-    f_equal.
-    apply IHM.
-  - intros N k.
-    simpl.
-    f_equal.
-    apply IHM.
+  (*     apply IHM2. *)
+  (*   + intros N0 k0 IHM1. *)
+  (*     change (phi (pterm_app (pterm_app N0 k0) M2)) with (pterm_app (phi (pterm_app N0 k0)) (phi M2)). *)
+  (*     change ({k ~> phi N} pterm_app (phi (pterm_app N0 k0)) (phi M2)) with (pterm_app ({k ~> phi N} (phi (pterm_app N0 k0)))({k ~> phi N} (phi M2))). *)
+  (*     rewrite <- IHM1. *)
+  (*     rewrite <- IHM2. *)
+  (*     change ({k ~> N} pterm_app (pterm_app N0 k0) M2) with (pterm_app ({k ~> N}(pterm_app N0 k0)) ({k ~> N} M2)). *)
+  (*     change (phi (pterm_app ({k ~> N} pterm_app N0 k0) ({k ~> N} M2))) with *)
+  (*         (pterm_app (phi ({k ~> N} pterm_app N0 k0)) (phi ({k ~> N} M2))). *)
+  (*     reflexivity. *)
+  (*   + intros N0 k0. *)
+  (*     simpl. *)
+  (*     f_equal. *)
+  (*      * apply k0. *)
+  (*      * apply IHM2. *)
+  (*   + intros M1' IH. *)
+  (*     simpl in *. *)
+  (*     rewrite IHM2. *)
+  (*     assert (IH' := IH N k). *)
+  (*     inversion IH'. *)
+  (*     rewrite H0. *)
+  (*     unfold open. *)
+  (*     apply subst_lemma. *)
+
+  (*     apply Peano.le_0_n. *)
+  (* - intros N k. *)
+  (*   simpl. *)
+  (*   f_equal. *)
+  (*   apply IHM. *)
+  (* - intros N k. *)
+  (*   simpl. *)
+  (*   f_equal. *)
+  (*   apply IHM. *)
 Admitted.    
 
 Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
