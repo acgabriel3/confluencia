@@ -347,7 +347,26 @@ Proof.
       inversion Hlterm1.
   - simpl. admit.
   - Admitted. (* Gabriel *)
-    
+
+
+Lemma term_phi_open: forall t1 t2 x L,  x \notin L -> term (phi (t1 ^ x)) -> term (phi t2) -> term (phi t1 ^^ phi t2).
+Proof.
+  intro t; induction t.
+  - intros t2 x L HL Hterm1 Hterm2.
+    unfold open in *.
+    generalize dependent n.
+    intro n; case n.
+    + intro H.
+      assumption.
+    + intros n'; simpl.
+      intro H; inversion H.
+  - admit. (* Gabriel *)
+  - intros t3 x L HL.
+    admit.
+  - intros t2 x L HL Hterm1 Hterm2.
+    admit.
+  - intros t2 x L HL Hterm1 Hterm2. (* Gabriel *)
+Admitted.  
   (*
   intro t; induction t.
   - intro H; inversion H.
