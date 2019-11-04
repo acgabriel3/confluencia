@@ -146,6 +146,33 @@ Ltac pick_fresh_gen L Y :=
 Ltac pick_fresh Y :=
   let L := gather_vars in (pick_fresh_gen L Y).
 
+Lemma notin_union : forall x E F,
+  x \notin (E \u F) <-> (x \notin E) /\ (x \notin F).
+Proof.
+assert (not_or: forall (A B: Prop), ~(A \/ B) <-> ~ A /\ ~ B).
+{
+  unfold not.
+  split.
+  - intro H.
+    split.
+    + intro H0.
+      destruct H.
+      left. 
+      assumption.
+    + intro H0.
+      destruct H.
+      right.
+      assumption.
+  - intros H H0.
+    destruct H.
+    destruct H0; contradiction.
+}
+intros x E F.
+apply iff_stepl with (~((x \in E) \/ (x \in F))).
+- apply not_or.
+- split; unfold not; intros; destruct H; apply union_spec in H0; assumption.
+Qed.
+
 Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   match t with
   | pterm_bvar i    => if k === i then u else (pterm_bvar i)
@@ -234,7 +261,7 @@ Fixpoint erase (t:pterm) : pterm :=
   | _ => t
   end.
 
-(* ? *)
+(* ? 
 Fixpoint unerase (t:pterm) : pterm :=
   match t with
   | pterm_app t1 t2 =>
@@ -245,6 +272,7 @@ Fixpoint unerase (t:pterm) : pterm :=
   | pterm_abs t1 => pterm_abs (unerase t1)
   | _ => t
   end.
+ *)
 
 Lemma erase_idemp: forall a, erase (erase a) = erase a.
 Proof.
@@ -294,8 +322,33 @@ Fixpoint phi (t:pterm) : pterm :=
   | _ => t
   end.
 
-Lemma phi_term: forall t, term t -> term (phi t).
+(* Precisamos de um lema entre phi e open. *)
+
+Lemma phi_term: forall t, lterm t -> term (phi t).
 Proof.
+  intros t Hlterm.
+  induction Hlterm.
+  - admit. (* Gabriel *)
+  - generalize dependent t2.
+    induction t1.
+    + simpl in *.
+      inversion Hlterm1.
+    + simpl in *.
+      intros t2 Hlterm2 Hterm2.
+      admit. (* Gabriel *)
+    + intros t2 Hlterm2 Hterm2.
+      admit.
+    + intros t2 Hlterm2 Hterm2.
+      simpl.
+      admit. (* Gabriel *)
+    + intros t2 Hlterm2 Hterm2.
+      clear IHt1.
+      simpl in *.
+      inversion Hlterm1.
+  - simpl. admit.
+  - Admitted. (* Gabriel *)
+    
+  (*
   intro t; induction t.
   - intro H; inversion H.
   - intro H; assumption.
@@ -323,7 +376,7 @@ Proof.
       unfold open.
       admit. (* work with lc_at *)
   - admit.
-  - Admitted.
+  - Admitted. *)
 
 (*
 Lemma lt_preserv_str1 : forall M x, lterm M -> M = (pterm_fvar x) -> erase M = (pterm_fvar x).
