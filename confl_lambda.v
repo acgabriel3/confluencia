@@ -328,24 +328,32 @@ Lemma phi_term: forall t, lterm t -> term (phi t).
 Proof.
   intros t Hlterm.
   induction Hlterm.
-  - admit. (* Gabriel *)
+  - simpl.
+    apply term_var. (* Gabriel *)
   - generalize dependent t2.
     induction t1.
     + simpl in *.
       inversion Hlterm1.
     + simpl in *.
       intros t2 Hlterm2 Hterm2.
-      admit. (* Gabriel *)
+      apply term_app.
+        * apply term_var.
+        * assumption. (* Gabriel *)
     + intros t2 Hlterm2 Hterm2.
       admit.
     + intros t2 Hlterm2 Hterm2.
       simpl.
-      admit. (* Gabriel *)
+      apply term_app.
+        * simpl in IHHlterm1.
+          assumption.
+        * assumption. (* Gabriel *)
     + intros t2 Hlterm2 Hterm2.
       clear IHt1.
       simpl in *.
       inversion Hlterm1.
-  - simpl. admit.
+  - simpl.
+    unfold open.
+ admit.
   - Admitted. (* Gabriel *)
 
 
@@ -360,13 +368,18 @@ Proof.
       assumption.
     + intros n'; simpl.
       intro H; inversion H.
-  - admit. (* Gabriel *)
+
+ (* Gabriel *)
   - intros t3 x L HL.
+    intros Hfvphi Ht3.
+    simpl.
+    assumption.
+  - intros t2' x L HL Hterm1 Hterm2.
     admit.
   - intros t2 x L HL Hterm1 Hterm2.
-    admit.
-  - intros t2 x L HL Hterm1 Hterm2. (* Gabriel *)
-Admitted.  
+    simpl.
+    admit. (* Gabriel *)
+Admitted.
   (*
   intro t; induction t.
   - intro H; inversion H.
