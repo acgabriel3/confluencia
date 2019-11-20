@@ -323,6 +323,21 @@ Fixpoint phi (t:pterm) : pterm :=
   end.
 
 (* Precisamos de um lema entre phi e open. *)
+Lemma phi_open_rec: forall t n x, phi(open_rec n x t) = open_rec n x (phi t).
+Proof.
+  intro t; induction t.
+  - admit.
+  - admit.
+  - admit.
+  - admit.
+  - Admitted.
+
+Corollary phi_open: forall t x, phi(t^x) = (phi t)^x.
+Proof.
+  intros t x.
+  unfold open.
+  apply phi_open_rec.
+Qed.
 
 Lemma phi_term: forall t, lterm t -> term (phi t).
 Proof.
@@ -354,7 +369,12 @@ Proof.
   - simpl.    
     unfold open.
     admit.
-  - Admitted. (* Gabriel *)
+  - simpl.
+    apply term_abs with L.
+    intros x HL.
+    rewrite <- phi_open.
+    apply H0; assumption.
+Admitted.
 
 
 Lemma term_phi_open: forall t1 t2 x L,  x \notin L -> term (phi (t1 ^ x)) -> term (phi t2) -> term (phi t1 ^^ phi t2).
