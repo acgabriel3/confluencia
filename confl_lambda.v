@@ -324,11 +324,20 @@ Fixpoint phi (t:pterm) : pterm :=
 
 (* Precisamos de um lema entre phi e open. *)
 Lemma phi_open_rec: forall t n x, phi(open_rec n x t) = open_rec n x (phi t).
-Proof.
+Proof.  
   intro t; induction t.
-  - admit.
-  - admit.
-  - admit.
+  - intros h1 h2.
+    simpl.
+    destruct(h1 === n).
+    + admit.
+    + simpl.
+      reflexivity.
+  - intros n x.
+    simpl.
+    reflexivity.
+  - intros n x.
+    change ({n ~> x} pterm_app t1 t2) with (pterm_app ({n ~> x} t1) ({n ~> x} t2)).
+    admit.
   - admit.
   - Admitted.
 
