@@ -351,9 +351,9 @@ Proof.
       clear IHt1.
       simpl in *.
       inversion Hlterm1.
-  - simpl.
+  - simpl.    
     unfold open.
- admit.
+    admit.
   - Admitted. (* Gabriel *)
 
 
