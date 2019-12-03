@@ -323,28 +323,54 @@ Fixpoint phi (t:pterm) : pterm :=
   end.
 
 (* Precisamos de um lema entre phi e open. *)
-Lemma phi_open_rec: forall t n x, phi(open_rec n x t) = open_rec n x (phi t).
+Lemma phi_open_rec: forall t n x, phi(open_rec n (pterm_fvar x) t) = open_rec n (pterm_fvar x) (phi t).
 Proof.  
   intro t; induction t.
-  - intros h1 h2.
+  - intros n' x.
     simpl.
-    destruct(h1 === n).
-    + 
-      admit.
-    + simpl.
-      reflexivity.
+    destruct(n' === n).
+    + reflexivity.
+    + reflexivity.
   - intros n x.
-    simpl.
     reflexivity.
   - intros n x.
-    change ({n ~> x} pterm_app t1 t2) with (pterm_app ({n ~> x} t1) ({n ~> x} t2)).
+    change ({n ~> (pterm_fvar x)} pterm_app t1 t2) with (pterm_app ({n ~> (pterm_fvar x)} t1) ({n ~> (pterm_fvar x)} t2)).
     case t1.
-     + intros n0.
-       admit.
-     + intros v.
-    admit.
-  - admit.
-  - Admitted.
+    + intros n0.
+      simpl (phi (pterm_app (pterm_bvar n0) t2)).
+      simpl ( {n ~> pterm_fvar x} pterm_app (pterm_bvar n0) (phi t2)).
+      simpl ({n ~> pterm_fvar x} pterm_bvar n0).
+      destruct(n === n0); subst.
+      * simpl.
+        rewrite IHt2.
+        reflexivity.
+      * simpl.
+        rewrite IHt2.
+        reflexivity.
+    + admit. (* Gabriel *)
+    + intros t11 t12.
+      simpl ({n ~> pterm_fvar x} pterm_app t11 t12).
+      change (phi
+    (pterm_app (pterm_app ({n ~> pterm_fvar x} t11) ({n ~> pterm_fvar x} t12))
+               ({n ~> pterm_fvar x} t2))) with
+    (pterm_app (phi (pterm_app ({n ~> pterm_fvar x} t11) ({n ~> pterm_fvar x} t12)))
+               (phi ({n ~> pterm_fvar x} t2))).
+      change (phi (pterm_app (pterm_app t11 t12) t2)) with
+          (pterm_app (phi (pterm_app t11 t12)) (phi t2)).
+      change ({n ~> pterm_fvar x} pterm_app (phi (pterm_app t11 t12)) (phi t2)) with (pterm_app ({n ~> pterm_fvar x}(phi (pterm_app t11 t12))) ({n ~> pterm_fvar x}(phi t2))).
+      rewrite IHt2.
+      admit.
+    + admit. (* Gabriel *)
+    + admit. 
+  - intros n x.
+    simpl.
+    rewrite IHt.
+    reflexivity.
+  - intros n x.
+    simpl.
+    rewrite IHt.
+    reflexivity.
+Admitted.
 
 Corollary phi_open: forall t x, phi(t^x) = (phi t)^x.
 Proof.
@@ -358,7 +384,7 @@ Proof.
   intros t Hlterm.
   induction Hlterm.
   - simpl.
-    apply term_var. (* Gabriel *)
+    apply term_var. 
   - generalize dependent t2.
     induction t1.
     + simpl in *.
@@ -367,7 +393,7 @@ Proof.
       intros t2 Hlterm2 Hterm2.
       apply term_app.
         * apply term_var.
-        * assumption. (* Gabriel *)
+        * assumption. 
     + intros t2 Hlterm2 Hterm2.
       admit.
     + intros t2 Hlterm2 Hterm2.
@@ -375,7 +401,7 @@ Proof.
       apply term_app.
         * simpl in IHHlterm1.
           assumption.
-        * assumption. (* Gabriel *)
+        * assumption. 
     + intros t2 Hlterm2 Hterm2.
       clear IHt1.
       simpl in *.
