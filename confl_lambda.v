@@ -329,7 +329,8 @@ Proof.
   - intros h1 h2.
     simpl.
     destruct(h1 === n).
-    + admit.
+    + 
+      admit.
     + simpl.
       reflexivity.
   - intros n x.
@@ -337,6 +338,10 @@ Proof.
     reflexivity.
   - intros n x.
     change ({n ~> x} pterm_app t1 t2) with (pterm_app ({n ~> x} t1) ({n ~> x} t2)).
+    case t1.
+     + intros n0.
+       admit.
+     + intros v.
     admit.
   - admit.
   - Admitted.
