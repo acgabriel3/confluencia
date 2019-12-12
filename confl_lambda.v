@@ -347,7 +347,10 @@ Proof.
       * simpl.
         rewrite IHt2.
         reflexivity.
-    + admit. (* Gabriel *)
+    + intros v.
+      simpl.
+      f_equal.
+      apply IHt2. (* Gabriel *)
     + intros t11 t12.
       simpl ({n ~> pterm_fvar x} pterm_app t11 t12).
       change (phi
@@ -360,7 +363,12 @@ Proof.
       change ({n ~> pterm_fvar x} pterm_app (phi (pterm_app t11 t12)) (phi t2)) with (pterm_app ({n ~> pterm_fvar x}(phi (pterm_app t11 t12))) ({n ~> pterm_fvar x}(phi t2))).
       rewrite IHt2.
       admit.
-    + admit. (* Gabriel *)
+    + intros p.
+      simpl.
+      rewrite IHt2.
+      f_equal.
+       * f_equal. (* deveria ser fechado por h.i, mas temos o termo p *)
+         admit. (* Gabriel *)
     + admit. 
   - intros n x.
     simpl.
