@@ -443,9 +443,10 @@ Proof.
     simpl.
     assumption.
   - intros t2' x L HL Hterm1 Hterm2.
+    
     admit.
   - intros t2 x L HL Hterm1 Hterm2.
-    simpl.
+    assert(teste := IHt t2 x L HL).
     admit. (* Gabriel *)
 Admitted.
   (*
