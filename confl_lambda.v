@@ -294,16 +294,41 @@ Inductive refltrans (red: Rel pterm) : Rel pterm :=
 | atleast1: forall a b, red a b -> refltrans red a b
 | rtrans: forall a b c, refltrans red a b -> refltrans red b c -> refltrans red a c.
 
+Inductive refltrans' (red: Rel pterm) : Rel pterm :=
+| refl: forall a, refltrans' red a a
+| rtrans': forall a b c, red a b -> refltrans' red b c -> refltrans' red a c.
+
+Lemma refltrans_equiv: forall (R: Rel pterm) (a b: pterm), refltrans R a b <-> refltrans' R a b.
+Proof.
+  intros R a b; split.
+  - intro H.
+    induction H.
+    + apply refl.
+    + apply rtrans' with b.
+      * assumption.
+      * apply refl.
+    + clear H H0.
+      induction IHrefltrans1.
+      * assumption.
+      * apply rtrans' with b.
+        ** assumption.
+        ** apply IHIHrefltrans1; assumption.
+  - intro H.
+    induction H.
+    + apply reflex.
+    + apply rtrans with b.
+      * apply atleast1; assumption.
+      * assumption.
+Qed.    
+
 Inductive rule_b : Rel pterm  :=
-  reg_rule_b : forall (t u:pterm),
-    body t -> term u ->
+  reg_rule_b : forall (t u:pterm), body t -> term u ->
     rule_b (pterm_app(pterm_abs t) u) (t ^^ u).
 Notation "t -->B u" := (contextual_closure rule_b t u) (at level 60).
 Notation "t -->>B u" := (refltrans (contextual_closure rule_b) t u) (at level 60).
 
 Inductive rule_lb : Rel pterm  :=
-  | reg_rule_bb : forall (t u:pterm),
-    body t -> term u ->
+  | reg_rule_bb : forall (t u:pterm), body t -> term u ->
     rule_lb (pterm_app(pterm_abs t) u) (t ^^ u)
   | reg_rule_lb : forall (t u:pterm),
     body t -> term u ->
@@ -323,7 +348,68 @@ Fixpoint phi (t:pterm) : pterm :=
   end.
 
 (* Precisamos de um lema entre phi e open. *)
-Lemma phi_open_rec: forall t n x, phi(open_rec n (pterm_fvar x) t) = open_rec n (pterm_fvar x) (phi t).
+Lemma phi_open_rec: forall t u n, phi(open_rec n u t) = open_rec n (phi u) (phi t).
+Proof.  
+  intro t; induction t.
+  - intros n' u.
+    simpl.
+    destruct(n' === n).
+    + reflexivity.
+    + reflexivity.
+  - intros n u.
+    reflexivity.
+  - intros n u.
+    change ({n ~> u} pterm_app t1 t2) with (pterm_app ({n ~> u} t1) ({n ~> u} t2)).
+    generalize dependent IHt1.
+    case t1.
+    + intros n0 IHt1.
+      simpl (phi (pterm_app (pterm_bvar n0) t2)).
+      simpl ( {n ~> u} pterm_app (pterm_bvar n0) (phi t2)).
+      simpl ({n ~> u} pterm_bvar n0).
+      destruct(n === n0); subst.
+      * simpl.
+        rewrite IHt2.
+        reflexivity.
+      * simpl.
+        rewrite IHt2.
+        reflexivity.
+    + intros v IHt1.
+      simpl.
+      f_equal.
+      apply IHt2. 
+    + intros t11 t12 IHt1.
+      simpl ({n ~> u} pterm_app t11 t12).
+      change (phi
+    (pterm_app (pterm_app ({n ~> u} t11) ({n ~> u} t12))
+               ({n ~> u} t2))) with
+    (pterm_app (phi (pterm_app ({n ~> u} t11) ({n ~> u} t12)))
+               (phi ({n ~> u} t2))).
+      change (phi (pterm_app (pterm_app t11 t12) t2)) with
+          (pterm_app (phi (pterm_app t11 t12)) (phi t2)).
+      change ({n ~> u} pterm_app (phi (pterm_app t11 t12)) (phi t2)) with (pterm_app ({n ~> u}(phi (pterm_app t11 t12))) ({n ~> u}(phi t2))).
+      rewrite IHt2.
+      rewrite <- IHt1.
+      reflexivity.
+    + intros t1' IHt1.
+      simpl in *.
+      rewrite IHt2.
+      rewrite <- IHt1.
+      reflexivity.
+    + intros t1' IHt1.
+      simpl in *.
+      rewrite IHt2.
+  - intros n x.
+    simpl.
+    rewrite IHt.
+    reflexivity.
+  - intros n x.
+    simpl.
+    rewrite IHt.
+    reflexivity.
+Admitted.
+
+(*  
+Lemma phi_open_rec_fvar: forall t n x, phi(open_rec n (pterm_fvar x) t) = open_rec n (pterm_fvar x) (phi t).
 Proof.  
   intro t; induction t.
   - intros n' x.
@@ -335,8 +421,9 @@ Proof.
     reflexivity.
   - intros n x.
     change ({n ~> (pterm_fvar x)} pterm_app t1 t2) with (pterm_app ({n ~> (pterm_fvar x)} t1) ({n ~> (pterm_fvar x)} t2)).
+    generalize dependent IHt1.
     case t1.
-    + intros n0.
+    + intros n0 IHt1.
       simpl (phi (pterm_app (pterm_bvar n0) t2)).
       simpl ( {n ~> pterm_fvar x} pterm_app (pterm_bvar n0) (phi t2)).
       simpl ({n ~> pterm_fvar x} pterm_bvar n0).
@@ -347,11 +434,11 @@ Proof.
       * simpl.
         rewrite IHt2.
         reflexivity.
-    + intros v.
+    + intros v IHt1.
       simpl.
       f_equal.
-      apply IHt2. (* Gabriel *)
-    + intros t11 t12.
+      apply IHt2. 
+    + intros t11 t12 IHt1.
       simpl ({n ~> pterm_fvar x} pterm_app t11 t12).
       change (phi
     (pterm_app (pterm_app ({n ~> pterm_fvar x} t11) ({n ~> pterm_fvar x} t12))
@@ -362,14 +449,16 @@ Proof.
           (pterm_app (phi (pterm_app t11 t12)) (phi t2)).
       change ({n ~> pterm_fvar x} pterm_app (phi (pterm_app t11 t12)) (phi t2)) with (pterm_app ({n ~> pterm_fvar x}(phi (pterm_app t11 t12))) ({n ~> pterm_fvar x}(phi t2))).
       rewrite IHt2.
-      admit.
-    + intros p.
-      simpl.
+      rewrite <- IHt1.
+      reflexivity.
+    + intros t1' IHt1.
+      simpl in *.
       rewrite IHt2.
-      f_equal.
-       * f_equal. (* deveria ser fechado por h.i, mas temos o termo p *)
-         admit. (* Gabriel *)
-    + admit. 
+      rewrite <- IHt1.
+      reflexivity.
+    + intros t1' IHt1.
+      simpl in *.
+      rewrite IHt2.
   - intros n x.
     simpl.
     rewrite IHt.
@@ -379,6 +468,7 @@ Proof.
     rewrite IHt.
     reflexivity.
 Admitted.
+ *)
 
 Corollary phi_open: forall t x, phi(t^x) = (phi t)^x.
 Proof.
@@ -424,6 +514,9 @@ Proof.
     apply H0; assumption.
 Admitted.
 
+Lemma term_fvar_to_term: forall t1 t2 t3 x, term (phi (pterm_app t1 t2)^x) -> term t3 -> term (phi (pterm_app t1 t2)^^t3). 
+Proof.
+Admitted.  
 
 Lemma term_phi_open: forall t1 t2 x L,  x \notin L -> term (phi (t1 ^ x)) -> term (phi t2) -> term (phi t1 ^^ phi t2).
 Proof.
@@ -436,15 +529,14 @@ Proof.
       assumption.
     + intros n'; simpl.
       intro H; inversion H.
-
- (* Gabriel *)
   - intros t3 x L HL.
     intros Hfvphi Ht3.
     simpl.
     assumption.
   - intros t2' x L HL Hterm1 Hterm2.
-    
-    admit.
+    unfold open in *.
+    rewrite phi_open_rec in Hterm1.
+    apply term_fvar_to_term with x; assumption.
   - intros t2 x L HL Hterm1 Hterm2.
     assert(teste := IHt t2 x L HL).
     admit. (* Gabriel *)
