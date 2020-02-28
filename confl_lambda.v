@@ -353,26 +353,32 @@ Proof.
   intro t; induction t.
   - intros n' u.
     simpl.
-    destruct(n' === n).
+    destruct(u === n).
     + reflexivity.
     + reflexivity.
   - intros n u.
     reflexivity.
-  - intros n u.
+  - intros u n.
     change ({n ~> u} pterm_app t1 t2) with (pterm_app ({n ~> u} t1) ({n ~> u} t2)).
     generalize dependent IHt1.
     case t1.
     + intros n0 IHt1.
       simpl (phi (pterm_app (pterm_bvar n0) t2)).
-      simpl ( {n ~> u} pterm_app (pterm_bvar n0) (phi t2)).
+      simpl ( {n ~> u} pterm_app (pterm_bvar n0) (phi t2)). (* passo sem resultado *)
       simpl ({n ~> u} pterm_bvar n0).
       destruct(n === n0); subst.
+      * change ({n0 ~> phi u} pterm_app (pterm_bvar n0) (phi t2)) with
+        (pterm_app ({n0 ~> phi u} (pterm_bvar n0)) ({n0 ~> phi u} (phi t2))).
+        simpl(phi (pterm_app u ({n0 ~> u} t2))).
+        rewrite IHt2.
+        admit.
       * simpl.
         rewrite IHt2.
-        reflexivity.
-      * simpl.
-        rewrite IHt2.
-        reflexivity.
+        destruct(n === n0).
+        ** rewrite e.
+           f_equal.
+           admit.
+        ** admit.
     + intros v IHt1.
       simpl.
       f_equal.
