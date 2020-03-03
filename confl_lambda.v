@@ -203,10 +203,22 @@ Proof.
         admit.
       * intro Hneq.
         admit.
-  -
-  -
-  -
-  -
+  - intros t2 n0 x.
+    reflexivity.
+  - intros  t0 n0 x.
+    unfold open in *.
+    simpl.
+    rewrite IHt1.
+    rewrite IHt2.
+    reflexivity.
+  - intros t2 n0 x.
+    unfold open in *.
+    simpl.
+    admit.
+  - intros t2 no x.
+    unfold open in *.
+    simpl.
+    admit.
 Admitted.
 
 Fixpoint close_rec  (k : nat) (x : var) (t : pterm) : pterm :=
