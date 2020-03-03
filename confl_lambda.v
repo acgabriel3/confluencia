@@ -188,6 +188,27 @@ Notation "{ k ~> u } t" := (open_rec k u t) (at level 67).
 Notation "t ^^ u" := (open t u) (at level 67). 
 Notation "t ^ x" := (open t (pterm_fvar x)).   
 
+Lemma open_rec_open: forall t1 t2 n x, {n ~> pterm_fvar x}(t1 ^^ t2) = ({S n ~> pterm_fvar x}t1) ^^ ({n ~> pterm_fvar x}t2).
+Proof.
+  intro t; induction t.
+  - intros t2 n0 x.
+    unfold open.
+    case n.
+    + reflexivity.
+    + intro n1.
+      change ({0 ~> t2} pterm_bvar (S n1)) with (pterm_bvar (S n1)).
+      case (n0 === n1).
+      * intro Heq.
+        rewrite Heq.
+        admit.
+      * intro Hneq.
+        admit.
+  -
+  -
+  -
+  -
+Admitted.
+
 Fixpoint close_rec  (k : nat) (x : var) (t : pterm) : pterm :=
   match t with
   | pterm_bvar i    => pterm_bvar i
@@ -347,74 +368,7 @@ Fixpoint phi (t:pterm) : pterm :=
   | _ => t
   end.
 
-(* Precisamos de um lema entre phi e open. *)
-Lemma phi_open_rec: forall t u n, phi(open_rec n u t) = open_rec n (phi u) (phi t).
-Proof.  
-  intro t; induction t.
-  - intros n' u.
-    simpl.
-    destruct(u === n).
-    + reflexivity.
-    + reflexivity.
-  - intros n u.
-    reflexivity.
-  - intros u n.
-    change ({n ~> u} pterm_app t1 t2) with (pterm_app ({n ~> u} t1) ({n ~> u} t2)).
-    generalize dependent IHt1.
-    case t1.
-    + intros n0 IHt1.
-      simpl (phi (pterm_app (pterm_bvar n0) t2)).
-      simpl ( {n ~> u} pterm_app (pterm_bvar n0) (phi t2)). (* passo sem resultado *)
-      simpl ({n ~> u} pterm_bvar n0).
-      destruct(n === n0); subst.
-      * change ({n0 ~> phi u} pterm_app (pterm_bvar n0) (phi t2)) with
-        (pterm_app ({n0 ~> phi u} (pterm_bvar n0)) ({n0 ~> phi u} (phi t2))).
-        simpl(phi (pterm_app u ({n0 ~> u} t2))).
-        rewrite IHt2.
-        admit.
-      * simpl.
-        rewrite IHt2.
-        destruct(n === n0).
-        ** rewrite e.
-           f_equal.
-           admit.
-        ** admit.
-    + intros v IHt1.
-      simpl.
-      f_equal.
-      apply IHt2. 
-    + intros t11 t12 IHt1.
-      simpl ({n ~> u} pterm_app t11 t12).
-      change (phi
-    (pterm_app (pterm_app ({n ~> u} t11) ({n ~> u} t12))
-               ({n ~> u} t2))) with
-    (pterm_app (phi (pterm_app ({n ~> u} t11) ({n ~> u} t12)))
-               (phi ({n ~> u} t2))).
-      change (phi (pterm_app (pterm_app t11 t12) t2)) with
-          (pterm_app (phi (pterm_app t11 t12)) (phi t2)).
-      change ({n ~> u} pterm_app (phi (pterm_app t11 t12)) (phi t2)) with (pterm_app ({n ~> u}(phi (pterm_app t11 t12))) ({n ~> u}(phi t2))).
-      rewrite IHt2.
-      rewrite <- IHt1.
-      reflexivity.
-    + intros t1' IHt1.
-      simpl in *.
-      rewrite IHt2.
-      rewrite <- IHt1.
-      reflexivity.
-    + intros t1' IHt1.
-      simpl in *.
-      rewrite IHt2.
-  - intros n x.
-    simpl.
-    rewrite IHt.
-    reflexivity.
-  - intros n x.
-    simpl.
-    rewrite IHt.
-    reflexivity.
-Admitted.
-
-(*  
+(* Precisamos de um lema entre phi e open. *)  
 Lemma phi_open_rec_fvar: forall t n x, phi(open_rec n (pterm_fvar x) t) = open_rec n (pterm_fvar x) (phi t).
 Proof.  
   intro t; induction t.
@@ -465,6 +419,14 @@ Proof.
     + intros t1' IHt1.
       simpl in *.
       rewrite IHt2.
+      replace ({n ~> pterm_fvar x} (phi t1' ^^ phi t2)) with (phi ({S n ~> pterm_fvar x} t1') ^^ ({n ~> pterm_fvar x} phi t2)).
+      * reflexivity.
+      * assert (IHt1' := IHt1 n x).
+        clear IHt1.
+        inversion IHt1'. clear IHt1'.
+        rewrite H0.
+        rewrite <- open_rec_open.
+        reflexivity.
   - intros n x.
     simpl.
     rewrite IHt.
@@ -473,8 +435,7 @@ Proof.
     simpl.
     rewrite IHt.
     reflexivity.
-Admitted.
- *)
+Qed.
 
 Corollary phi_open: forall t x, phi(t^x) = (phi t)^x.
 Proof.
