@@ -188,38 +188,6 @@ Notation "{ k ~> u } t" := (open_rec k u t) (at level 67).
 Notation "t ^^ u" := (open t u) (at level 67). 
 Notation "t ^ x" := (open t (pterm_fvar x)).   
 
-Lemma open_rec_open: forall t1 t2 n x, {n ~> pterm_fvar x}(t1 ^^ t2) = ({S n ~> pterm_fvar x}t1) ^^ ({n ~> pterm_fvar x}t2).
-Proof.
-  intro t; induction t.
-  - intros t2 n0 x.
-    unfold open.
-    case n.
-    + reflexivity.
-    + intro n1.
-      change ({0 ~> t2} pterm_bvar (S n1)) with (pterm_bvar (S n1)).
-      case (n0 === n1).
-      * intro Heq.
-        rewrite Heq.
-        admit.
-      * intro Hneq.
-        admit.
-  - intros t2 n0 x.
-    reflexivity.
-  - intros  t0 n0 x.
-    unfold open in *.
-    simpl.
-    rewrite IHt1.
-    rewrite IHt2.
-    reflexivity.
-  - intros t2 n0 x.
-    unfold open in *.
-    simpl.
-    admit.
-  - intros t2 no x.
-    unfold open in *.
-    simpl.
-    admit.
-Admitted.
 
 Fixpoint close_rec  (k : nat) (x : var) (t : pterm) : pterm :=
   match t with
@@ -260,6 +228,56 @@ Inductive lterm : pterm -> Prop :=
       lterm (pterm_abs t1).
 
 Hint Constructors lterm term.
+
+Lemma subst_lemma: forall (t1 t2 t3: pterm) (i k:nat), term t3 -> i <= k -> {i ~> {k ~> t3} t2} ({S k ~> t3} t1) = {k ~> t3} ({i ~> t2} t1).
+Proof.
+  intro t1; induction t1.
+  - intros t2 t3 i k Ht3 Hleq.
+Admitted.                                                                                  
+
+(*
+Lemma open_rec_open_rec: forall t1 t2 n m x, {n ~> pterm_fvar x}({m ~> t2} t1) = {m ~> {n ~> pterm_fvar x}t2}({S n ~> pterm_fvar x}t1).
+Proof.
+  intro t1; induction t1.
+  - intros t2 n' m x.
+    simpl ({m ~> t2} pterm_bvar n).
+    destruct (m === n).
+    rewrite e. clear e.
+Admitted.
+  
+Lemma open_rec_open: forall t1 t2 n x, {n ~> pterm_fvar x}(t1 ^^ t2) = ({S n ~> pterm_fvar x}t1) ^^ ({n ~> pterm_fvar x}t2).
+Proof.
+  intro t; induction t.
+  - intros t2 n0 x.
+    unfold open.
+    case n.
+    + reflexivity.
+    + intro n1.
+      change ({0 ~> t2} pterm_bvar (S n1)) with (pterm_bvar (S n1)).
+      case (n0 === n1).
+      * intro Heq.
+        rewrite Heq.
+        admit.
+      * intro Hneq.
+        admit.
+  - intros t2 n0 x.
+    reflexivity.
+  - intros  t0 n0 x.
+    unfold open in *.
+    simpl.
+    rewrite IHt1.
+    rewrite IHt2.
+    reflexivity.
+  - intros t2 n0 x.
+    unfold open in *.
+    simpl.
+    admit.
+  - intros t2 no x.
+    unfold open in *.
+    simpl.
+    admit.
+Admitted.
+ *)
 
 Definition Rel (A:Type) := A -> A -> Prop.
 
@@ -429,6 +447,8 @@ Proof.
       rewrite <- IHt1.
       reflexivity.
     + intros t1' IHt1.
+
+      simpl ({n ~> pterm_fvar x} pterm_labs t1').
       simpl in *.
       rewrite IHt2.
       replace ({n ~> pterm_fvar x} (phi t1' ^^ phi t2)) with (phi ({S n ~> pterm_fvar x} t1') ^^ ({n ~> pterm_fvar x} phi t2)).
@@ -652,18 +672,6 @@ Proof.
   apply  erase_open_rec.
 Qed.
 
-(* pensar *)
-Lemma subst_lemma: forall (M1 M2 M3: pterm) (i k:nat), term M3 -> i <= k -> {i ~> {k ~> M3} M2} ({S k ~> M3} M1) = {k ~> M3} ({i ~> M2} M1).
-Proof.
-  induction M1.
-  - intros M2 M3 i k Hterm Hleq.
-    case (n === S k).
-    + intro Heq; subst.
-      replace ({S k ~> M3} pterm_bvar (S k)) with M3.
-      * case (i === S k).
-        ** intro Heq; subst.
-           replace ({S k ~> M2} pterm_bvar (S k)) with M2.
-Admitted.                                                                                  
 Lemma phi_subst_rec: forall (M N: pterm) (k: nat), term N -> phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
 Proof.
   induction M.
