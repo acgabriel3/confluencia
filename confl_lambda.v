@@ -233,6 +233,33 @@ Lemma subst_lemma: forall (t1 t2 t3: pterm) (i k:nat), term t3 -> i <= k -> {i ~
 Proof.
   intro t1; induction t1.
   - intros t2 t3 i k Ht3 Hleq.
+    simpl({i ~> t2} pterm_bvar n).
+    destruct(i === n).
+    + rewrite e in *.
+      destruct(n === k).
+      * rewrite e0.
+        simpl({S k ~> t3} pterm_bvar k). (* problema: Deveria simplificar para pterm_bvar k, não? *)
+        admit.
+      * admit.
+    + admit.
+  - admit.
+  - admit.
+  - admit.
+  - admit.
+   (*
+    case i.
+    + case k.
+      *case n.
+       ** simpl.
+          reflexivity.
+       ** intros n0.
+          simpl({0 ~> t2} pterm_bvar (S n0)).
+          simpl({0 ~> t3} pterm_bvar (S n0)).
+          admit.
+      * intros n0.
+        simpl. 
+    +
+    *)
 Admitted.                                                                                  
 
 (*
