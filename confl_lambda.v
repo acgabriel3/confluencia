@@ -229,19 +229,94 @@ Inductive lterm : pterm -> Prop :=
 
 Hint Constructors lterm term.
 
-Lemma subst_lemma: forall (t1 t2 t3: pterm) (i k:nat), term t3 -> i <= k -> {i ~> {k ~> t3} t2} ({S k ~> t3} t1) = {k ~> t3} ({i ~> t2} t1).
+Lemma subst_term: forall t u n, term t -> {n ~> u} t = t. 
+Proof.
+  Admitted.
+  
+Lemma subst_lemma: forall (t1 t2 t3: pterm) (i j:nat), term t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> {j ~> t3} t2} ({j ~> t3} t1).
+Proof.
+  intro t1; induction t1.
+  - intros t2 t3 i j Ht3 Hij.
+    simpl ({i ~> t2} pterm_bvar n).
+    destruct (i === n).
+    + subst.
+      admit.
+    + simpl  ({j ~> t3} pterm_bvar n).
+      destruct (j === n).
+      * admit.
+      * admit.
+  - Admitted.
+
+(*
+Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
+  match t with
+  | pterm_bvar i    => i < k
+  | pterm_fvar x    => True
+  | pterm_app t1 t2 => lc_at k t1 /\ lc_at k t2
+  | pterm_abs t1    => lc_at (S k) t1
+  | pterm_labs t1    => lc_at (S k) t1
+  end.
+
+(** Provar equivalência entre lc_at e term/lterm *)
+
+(** term ({k ~> t3} ({i ~> t2} t1)) sse
+a expressão ({i ~> t2} t1) pode ter uma ocorrência do índice solto k ou não tem k sse
+a expressão t1 pode ter ocorrências dos índices i e/ou k 
+
+
+term ({k ~> {k ~> t3} t2} ({S k ~> t3} t1)) 
+
+Lemma subst_lemma: forall (t1 t2 t3: pterm) (i k:nat), term t3 -> i <= k -> term ({k ~> t3} ({i ~> t2} t1)) -> term ({k ~> {(k-i) ~> t3} t2} ({S k ~> t3} t1)) -> {k ~> {k ~> t3} t2} ({S k ~> t3} t1) = {k ~> t3} ({i ~> t2} t1). *)
+
+Lemma subst_lemma: forall (t1 t2 t3: pterm) (i k:nat), term t3 -> i <= k -> lc_at (S i) t2 -> lc_at (S k) t1 -> {i ~> {k ~> t3} t2} ({S k ~> t3} t1) = {k ~> t3} ({i ~> t2} t1).
+Proof.
+  intro t; induction t.
+  - intros t2 t3 i k Hterm Hleq Hlt2 Hlt1.
+    simpl in Hlt1.
+    simpl ({i ~> t2} pterm_bvar n).
+    destruct (i === n); subst.
+    + assert (n <> S k).
+      {
+        intro Heq; subst.
+        admit.
+      }
+      replace ({S k ~> t3} pterm_bvar n) with (pterm_bvar n).
+      * simpl.
+        destruct (n === n).
+        ** reflexivity.
+        **  contradiction.
+      * admit.
+    + 
+      
+(*    
+Lemma subst_lemma: forall (t1 t2 t3: pterm) (i k:nat), term t3 -> i <= k -> {i ~> {(k-i) ~> t3} t2} ({S k ~> t3} t1) = {k ~> t3} ({i ~> t2} t1).
 Proof.
   intro t1; induction t1.
   - intros t2 t3 i k Ht3 Hleq.
     simpl({i ~> t2} pterm_bvar n).
     destruct(i === n).
-    + rewrite e in *.
-      destruct(n === k).
-      * rewrite e0.
-        simpl({S k ~> t3} pterm_bvar k). (* problema: Deveria simplificar para pterm_bvar k, não? *)
-        admit.
-      * admit.
-    + admit.
+    + subst.
+      destruct(n === (S k)).
+      * subst.
+        assert (H := Nat.nle_succ_diag_l k).
+        contradiction.
+      * replace ({S k ~> t3} pterm_bvar n) with (pterm_bvar n).
+        ** simpl.
+           destruct (n === n).
+           *** simpl.
+             admit.
+           *** contradiction.
+        ** unfold open_rec.
+           destruct (S k === n).
+           *** symmetry in e.
+               contradiction.
+           *** reflexivity.
+    + simpl ({k ~> t3} pterm_bvar n).
+      destruct (k === n).
+      * subst.
+      *
+      
+      admit.
   - admit.
   - admit.
   - admit.
@@ -260,7 +335,8 @@ Proof.
         simpl. 
     +
     *)
-Admitted.                                                                                  
+Admitted.                                                                               *)   
+ *)
 
 (*
 Lemma open_rec_open_rec: forall t1 t2 n m x, {n ~> pterm_fvar x}({m ~> t2} t1) = {m ~> {n ~> pterm_fvar x}t2}({S n ~> pterm_fvar x}t1).
