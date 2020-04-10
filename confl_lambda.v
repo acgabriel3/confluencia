@@ -229,9 +229,28 @@ Inductive lterm : pterm -> Prop :=
 
 Hint Constructors lterm term.
 
+(* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
+   -O lemma provavelmente não pode valer para o caso da variável ligada*)
 Lemma subst_term: forall t u n, term t -> {n ~> u} t = t. 
 Proof.
-  Admitted.
+  intros t0 u n h1.
+  induction t0.
+  - simpl.
+    destruct(n === n0).
+    + admit.
+    + reflexivity.
+  - simpl.
+    reflexivity.
+  - simpl.
+    f_equal.
+    + rewrite IHt0_1.
+      * reflexivity.
+      * admit.
+    + rewrite IHt0_2.
+      * admit.
+      * admit.
+  - admit.
+  - Admitted.
   
 Lemma subst_lemma: forall (t1 t2 t3: pterm) (i j:nat), term t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> {j ~> t3} t2} ({j ~> t3} t1).
 Proof.
@@ -240,7 +259,17 @@ Proof.
     simpl ({i ~> t2} pterm_bvar n).
     destruct (i === n).
     + subst.
-      admit.
+      simpl (({j ~> t3} pterm_bvar n)).
+      destruct (j === n).
+      * rewrite subst_term.
+        ** rewrite subst_term.
+          *** admit.
+          *** assumption.
+        ** admit.
+      * simpl({n ~> {j ~> t3} t2} pterm_bvar n).
+        destruct(n ===n).
+        ** reflexivity.
+        ** contradiction.
     + simpl  ({j ~> t3} pterm_bvar n).
       destruct (j === n).
       * admit.
