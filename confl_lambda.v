@@ -231,28 +231,23 @@ Hint Constructors lterm term.
 
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
-Lemma subst_term: forall t u n, term t -> {n ~> u} t = t. 
+Lemma subst_term: forall t, (forall u n, term t -> {n ~> u} t = t).
 Proof.
-  intro t.
-  elim t using term_ind.
-  intro t. Print term_ind.
-  elim t using term_ind.
-  - intros u n0 Hterm.
-    inversion Hterm.
-  - intros u n Hterm.
+  assert (Hind := term_ind (fun t => forall u n, term t -> {n ~> u} t = t)).
+  intro t; apply Hind.
+  - intros x u n Hterm.
     reflexivity.
-  - intros u n Hterm.
-    inversion Hterm; subst.
+  - intros t1 t2 Ht1 IHt1 Ht2 IHt2 u n Hterm.
     simpl.
+    inversion Hterm; subst.
     rewrite IHt1.
     + rewrite IHt2.
       * reflexivity.
       * assumption.
     + assumption.
-  - intros u n Hterm.
-    simpl.
-
-    Print term_ind.
+  - intros L t1 Ht1 IHt1 u n Hterm.
+    inversion Hterm; subst.
+Admitted.
     
 Lemma subst_lemma: forall (t1 t2 t3: pterm) (i j:nat), term t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> {j ~> t3} t2} ({j ~> t3} t1).
 Proof.
