@@ -233,6 +233,27 @@ Hint Constructors lterm term.
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
 Lemma subst_term: forall t, (forall u n, term t -> {n ~> u} t = t).
 Proof.
+  intro t; induction t.
+  - admit.
+  - admit.
+  - admit.
+  - intros u n Hterm.
+Admitted.
+
+Lemma abs_body: forall t1 t2 L, (forall x, x \notin L -> t1^x = t2^x) -> pterm_abs t1 = pterm_abs t2.
+Proof.
+  intro t1; induction t1.
+  - intro t2; induction t2.
+    + intros L H.
+      unfold open in H.
+      Admitted.
+
+Lemma subst_open: forall t u x n,  ({S n ~> u} t) ^ x = {S n ~> (u ^ x)} (t ^ x). 
+Proof.
+  Admitted.
+  
+Lemma subst_term': forall t, (forall u n, term t -> {n ~> u} t = t).
+Proof.
   assert (Hind := term_ind (fun t => forall u n, term t -> {n ~> u} t = t)).
   intro t; apply Hind.
   - intros x u n Hterm.
@@ -247,6 +268,28 @@ Proof.
     + assumption.
   - intros L t1 Ht1 IHt1 u n Hterm.
     inversion Hterm; subst.
+    simpl.
+    apply abs_body with L0.
+    intros x H.
+    apply H0 in H.
+    generalize dependent H.
+    rewrite subst_open.
+    assert (IHt1' := (IHt1 x)).
+    apply IHt1.
+
+        pick_fresh x.
+    apply notin_union in Fr.
+    destruct Fr.
+    apply notin_union in H.
+    destruct H.
+    apply notin_union in H.
+    destruct H.
+    apply notin_union in H.
+    destruct H.
+    apply notin_union in H.
+    destruct H.
+
+    
 Admitted.
     
 Lemma subst_lemma: forall (t1 t2 t3: pterm) (i j:nat), term t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> {j ~> t3} t2} ({j ~> t3} t1).
