@@ -231,14 +231,17 @@ Hint Constructors lterm term.
 
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
-Lemma subst_term: forall t, (forall u n, term t -> {n ~> u} t = t).
+
+(** Avançar neste lema 27/04/2020 *)
+Lemma subst_term: forall t u n, term t -> {n ~> u} t = t.
 Proof.
-  intro t; induction t.
+  intros t u n H.
+  generalize dependent n.
+  generalize dependent u.
+  induction H.
   - admit.
   - admit.
-  - admit.
-  - intros u n Hterm.
-Admitted.
+  - Admitted.
 
 Lemma abs_body: forall t1 t2 L, (forall x, x \notin L -> t1^x = t2^x) -> pterm_abs t1 = pterm_abs t2.
 Proof.
@@ -276,20 +279,6 @@ Proof.
     rewrite subst_open.
     assert (IHt1' := (IHt1 x)).
     apply IHt1.
-
-        pick_fresh x.
-    apply notin_union in Fr.
-    destruct Fr.
-    apply notin_union in H.
-    destruct H.
-    apply notin_union in H.
-    destruct H.
-    apply notin_union in H.
-    destruct H.
-    apply notin_union in H.
-    destruct H.
-
-    
 Admitted.
     
 Lemma subst_lemma: forall (t1 t2 t3: pterm) (i j:nat), term t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> {j ~> t3} t2} ({j ~> t3} t1).
