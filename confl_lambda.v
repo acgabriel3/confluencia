@@ -317,7 +317,36 @@ Proof.
         destruct (i === n).
         ** contradiction.
         ** reflexivity.
-  - Admitted.
+  - intros t2 t3 i h ht3 hdif.
+    simpl.
+    reflexivity.
+  - intros t2 t3 i j ht3 hdif.
+    simpl.
+    rewrite IHt1_1.
+    rewrite IHt1_2.
+    reflexivity.
+    + assumption.
+    + assumption.
+    + assumption.
+    + assumption.
+  - intros t2 t3 i j ht3 hdif.
+    simpl.
+    rewrite IHt1.
+    f_equal.
+   (* quando as substituições são enviadas para dentro do abs, não deveria suceder em ambos j?*)
+    admit.
+   + assumption.
+   + (* Qual manipulação algébrica realizar? *)
+      admit.
+  - intros t2 t3 i j ht3 hdif.
+    simpl.
+    rewrite IHt1.
+    f_equal.
+    case t1.
+    + intros k.
+      destruct (k === j).
+      * rewrite e.
+   Admitted.
 
 (*
 Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
