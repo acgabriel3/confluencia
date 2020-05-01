@@ -239,9 +239,16 @@ Proof.
   generalize dependent n.
   generalize dependent u.
   induction H.
-  - admit.
-  - admit.
-  - Admitted.
+  - intros u n.
+    simpl.
+    reflexivity.
+  - intros u n.
+    simpl.
+    rewrite IHterm1.
+    rewrite IHterm2.
+    reflexivity.
+  - intros u n.
+    Admitted.
 
 Lemma abs_body: forall t1 t2 L, (forall x, x \notin L -> t1^x = t2^x) -> pterm_abs t1 = pterm_abs t2.
 Proof.
