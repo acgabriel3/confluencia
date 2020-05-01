@@ -212,6 +212,9 @@ Inductive term : pterm -> Prop :=
       (forall x, x \notin L -> term (t1 ^ x)) ->
       term (pterm_abs t1).
 
+Definition body t :=
+  exists L, forall x, x \notin L -> term (t ^ x).
+
 Inductive lterm : pterm -> Prop :=
   | term_lvar : forall x,
       lterm (pterm_fvar x)
@@ -227,12 +230,18 @@ Inductive lterm : pterm -> Prop :=
       (forall x, x \notin L -> lterm (t1 ^ x)) ->
       lterm (pterm_abs t1).
 
+Definition lbody t :=
+  exists L, forall x, x \notin L -> lterm (t ^ x).
+
 Hint Constructors lterm term.
 
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
 
-(** Avançar neste lema 27/04/2020 *)
+Lemma subst_body: forall t u n, body t -> {S n ~> u} t = t.
+Proof.
+  Admitted.
+  
 Lemma subst_term: forall t u n, term t -> {n ~> u} t = t.
 Proof.
   intros t u n H.
@@ -248,7 +257,13 @@ Proof.
     rewrite IHterm2.
     reflexivity.
   - intros u n.
-    Admitted.
+    simpl.
+    rewrite subst_body.
+    + reflexivity.
+    + unfold body.
+      exists L.
+      assumption.
+Qed.
 
 Lemma abs_body: forall t1 t2 L, (forall x, x \notin L -> t1^x = t2^x) -> pterm_abs t1 = pterm_abs t2.
 Proof.
