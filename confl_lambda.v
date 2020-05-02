@@ -240,7 +240,31 @@ Hint Constructors lterm term.
 
 Lemma subst_body: forall t u n, body t -> {S n ~> u} t = t.
 Proof.
-  Admitted.
+  intros t0 u n Hbody.
+  induction t0.
+  - case(n0 === S n).
+    + intros H1.
+      rewrite H1.
+      simpl.
+      case(n === n).
+      * intro HObviously.
+        admit.
+      * intros HFalse; contradiction.
+    + intro HDif.
+      admit.
+  - simpl.
+    reflexivity.
+  - simpl.
+    rewrite IHt0_1.
+    + rewrite IHt0_2.
+      * reflexivity.
+      * admit.
+    + admit.
+  - simpl.
+    admit.
+  - simpl.
+    admit.
+Admitted.
   
 Lemma subst_term: forall t u n, term t -> {n ~> u} t = t.
 Proof.
