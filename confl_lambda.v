@@ -237,34 +237,127 @@ Hint Constructors lterm term.
 
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
+(*
+Lemma Sn_not_body: forall n, not (body (pterm_bvar (S n))).
+Proof.
+Admitted.
+
+Lemma not_S_is_0: forall n n0, n0 <> S n -> n0 = 0.
+Proof.
+Admitted.
+*)
+Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
+  match t with
+    | pterm_bvar n => if (k === n) then True else False
+    | pterm_fvar x => False
+    | pterm_app t1 t2 => (has_free_index k t1) \/ (has_free_index k t2)
+    | pterm_abs t1 => has_free_index (S k) t1
+    | pterm_labs t1 => has_free_index (S k) t1
+  end.
+
+Lemma body_not_S: forall t n, body t -> not (has_free_index (S n) t).
+Proof.
+Admitted.
+
+Lemma open_rec_close_rec_term: forall t u k, ~(has_free_index k t) -> open_rec k u t = t.
+Proof.
+  intro t; induction t.
+Admitted.  
 
 Lemma subst_body: forall t u n, body t -> {S n ~> u} t = t.
 Proof.
-  intros t0 u n Hbody.
-  induction t0.
+  intros t u n Hbody.
+  apply open_rec_close_rec_term.
+  apply body_not_S; assumption.
+Qed.  
+  (*  intros t0 u n Hbody.
+  unfold body in Hbody.
+  destruct Hbody as [L].
+  pick_fresh y.
+  apply notin_union in Fr.
+  destruct Fr as [Fr H1].
+  apply notin_union in Fr.
+  destruct Fr as [Fr H2].
+  apply notin_union in Fr.
+  destruct Fr as [Hbody H3].
+  apply H in Hbody.
+  clear H3.
+  induction Hbody.
   - case(n0 === S n).
     + intros H1.
-      rewrite H1.
-      simpl.
-      case(n === n).
-      * intro HObviously.
-        admit.
-      * intros HFalse; contradiction.
+      subst.
+      apply False_ind.
+      generalize dependent Hbody.
+      apply Sn_not_body.
     + intro HDif.
-      admit.
+      apply not_S_is_0 in HDif.
+      rewrite HDif.
+      reflexivity.
   - simpl.
     reflexivity.
-  - simpl.
+  - unfold body in Hbody.
+    destruct Hbody.
+    unfold open in H.
+    simpl in *.
     rewrite IHt0_1.
     + rewrite IHt0_2.
       * reflexivity.
-      * admit.
-    + admit.
+      * unfold body.
+        exists x.
+        intros x0 Hnot.
+        apply H in Hnot.
+        inversion Hnot; subst.
+        assumption.
+    + unfold body.
+        exists x.
+        intros x0 Hnot.
+        apply H in Hnot.
+        inversion Hnot; subst.
+        assumption.
+  - simpl.
+    admit.
+  - simpl.
+    admit.
+Admitted. *)
+(*  intros t0 u n Hbody.
+  induction t0.
+  - case(n0 === S n).
+    + intros H1.
+      subst.
+      apply False_ind.
+      generalize dependent Hbody.
+      apply Sn_not_body.
+    + intro HDif.
+      apply not_S_is_0 in HDif.
+      rewrite HDif.
+      reflexivity.
+  - simpl.
+    reflexivity.
+  - unfold body in Hbody.
+    destruct Hbody.
+    unfold open in H.
+    simpl in *.
+    rewrite IHt0_1.
+    + rewrite IHt0_2.
+      * reflexivity.
+      * unfold body.
+        exists x.
+        intros x0 Hnot.
+        apply H in Hnot.
+        inversion Hnot; subst.
+        assumption.
+    + unfold body.
+        exists x.
+        intros x0 Hnot.
+        apply H in Hnot.
+        inversion Hnot; subst.
+        assumption.
   - simpl.
     admit.
   - simpl.
     admit.
 Admitted.
+*)
   
 Lemma subst_term: forall t u n, term t -> {n ~> u} t = t.
 Proof.
