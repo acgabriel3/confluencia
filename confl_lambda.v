@@ -257,12 +257,36 @@ Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
 
 Lemma body_not_S: forall t n, body t -> not (has_free_index (S n) t).
 Proof.
+  intros t0 n H1; induction t0.
+  unfold body in H1.
+  unfold has_free_index.
+  - destruct(S n === n0).
+     + intros Htrue.
+       admit.
+     + intros HFalse.
+       assumption.
+  - unfold body in H1.
+    unfold has_free_index.
+    intros HFalse.
+    assumption.
+  - simpl.
+    admit.
 Admitted.
 
 Lemma open_rec_close_rec_term: forall t u k, ~(has_free_index k t) -> open_rec k u t = t.
 Proof.
   intro t; induction t.
-Admitted.  
+  - intros u k H1.
+    simpl.
+    destruct(k === n).
+    + rewrite <- e.
+      admit.
+    + reflexivity.
+  - intros u k H1.
+    simpl.
+    reflexivity.
+  - intros u k H1.
+Admitted.
 
 Lemma subst_body: forall t u n, body t -> {S n ~> u} t = t.
 Proof.
