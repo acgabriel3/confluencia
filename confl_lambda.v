@@ -255,22 +255,89 @@ Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
     | pterm_labs t1 => has_free_index (S k) t1
   end.
 
+Lemma deMorgan: forall p q, (~ p) /\ (~ q) -> ~(p \/ q).
+Proof.
+Admitted.
+
+Lemma term_rename: forall t x y, term (t ^ x) -> term (t ^ y).
+Proof.
+Admitted.
+
+Lemma ind_max: forall t u n, term ({n ~> u}t) -> ~ (has_free_index (S n) t).
+Proof.
+Admitted.
+
 Lemma body_not_S: forall t n, body t -> not (has_free_index (S n) t).
 Proof.
   intros t0 n H1; induction t0.
-  unfold body in H1.
-  unfold has_free_index.
-  - destruct(S n === n0).
-     + intros Htrue.
-       admit.
-     + intros HFalse.
-       assumption.
+  - unfold body in H1.
+    unfold has_free_index.
+    destruct(S n === n0); subst.
+    + destruct H1 as [L].
+      pick_fresh x.
+      apply notin_union in Fr.
+      destruct Fr as [Fr Hn].
+      apply H in Fr.
+      unfold open in Fr.
+      simpl in Fr.
+      inversion Fr.
+    + intros Htrue.
+      assumption.
   - unfold body in H1.
     unfold has_free_index.
     intros HFalse.
     assumption.
   - simpl.
-    admit.
+    unfold body in H1.
+    destruct H1.
+    pick_fresh y.
+     apply notin_union in Fr.
+     destruct Fr as [Fr H2].
+     apply notin_union in Fr.
+     destruct Fr as [Fr H1].
+     apply notin_union in Fr.
+     destruct Fr as [Fr Hn].
+     apply H in Fr.
+     change (pterm_app t0_1 t0_2 ^ y) with (pterm_app (t0_1 ^ y) (t0_2 ^ y)) in Fr.
+     inversion Fr; subst.
+     apply deMorgan.
+     split.
+    + apply IHt0_1.
+      unfold body.
+      exists (fv t0_1).
+      intros x0 Hfv.
+      apply term_rename with y.
+      assumption.
+    +admit.
+  - intro Hfree.
+    clear IHt0.
+    unfold body in H1.
+    destruct H1 as [L].
+    pick_fresh x.
+    apply notin_union in Fr.
+    destruct Fr as [Fr H0].
+    apply notin_union in Fr.
+    destruct Fr as [Fr Hn].
+    apply H in Fr.
+    unfold open in Fr.
+    simpl in Fr.
+    inversion Fr; subst.
+    pick_fresh z.
+    apply notin_union in Fr0.
+    destruct Fr0 as [Fr0 Ht0].
+    apply notin_union in Fr0.
+    destruct Fr0 as [Fr0 Hx].
+    apply notin_union in Fr0.
+    destruct Fr0 as [Fr0 Hn'].
+    apply notin_union in Fr0.
+    destruct Fr0 as [Fr0 HL0].
+    apply H2 in HL0.
+    unfold open in HL0.
+    simpl in Hfree.
+    clear L H Fr Hn H0 L0 H2 Fr0 Hn' Hx Ht0.
+    replace ({0 ~> pterm_fvar z} ({1 ~> pterm_fvar x} t0)) with ({1 ~> pterm_fvar x} ({0 ~> pterm_fvar z} t0)) in HL0.
+    + apply ind_max in HL0.
+    + admit.
 Admitted.
 
 Lemma open_rec_close_rec_term: forall t u k, ~(has_free_index k t) -> open_rec k u t = t.
