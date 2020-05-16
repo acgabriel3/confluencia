@@ -257,10 +257,43 @@ Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
 
 Lemma deMorgan: forall p q, (~ p) /\ (~ q) -> ~(p \/ q).
 Proof.
-Admitted.
+  intros p q H1.
+  intros or.
+  destruct(or).
+  - destruct(H1).
+    contradiction.
+  - destruct(H1).
+    contradiction.
+Qed.
 
 Lemma term_rename: forall t x y, term (t ^ x) -> term (t ^ y).
 Proof.
+  induction t0.
+  - intros x y H1.
+    unfold open in *.
+    destruct(n === 0).
+    + rewrite e in *.
+      simpl in *.
+      admit.
+    + admit.
+  - intros x y H1.
+    unfold open in *.
+    simpl in *.
+    assumption.
+  - intros x y H1.
+    unfold open in *.
+    simpl in *.
+    apply term_app.
+    + inversion H1; subst.
+      assert(Hyterm := IHt0_1 x y H2).
+      assumption.
+    + inversion H1; subst.
+      assert(Hyterm := IHt0_2 x y H3).
+      assumption.
+  - intros x y H1.
+    unfold open in *.
+    admit.
+  - admit.
 Admitted.
 
 Lemma ind_max: forall t u n, term ({n ~> u}t) -> ~ (has_free_index (S n) t).
