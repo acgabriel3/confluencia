@@ -235,6 +235,50 @@ Definition lbody t :=
 
 Hint Constructors lterm term.
 
+Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
+  match t with
+  | pterm_bvar i    => i < k
+  | pterm_fvar x    => True
+  | pterm_app t1 t2 => lc_at k t1 /\ lc_at k t2
+  | pterm_abs t1    => lc_at (S k) t1
+  | pterm_labs t1    => lc_at (S k) t1
+  end.
+
+Lemma lc_at_open_rec_rename: forall t x y m n, lc_at m (open_rec n (pterm_fvar x) t) -> lc_at m (open_rec n (pterm_fvar y) t).
+Proof.
+  intro t; induction t.
+  - intros x y m n0.
+    simpl. destruct (n0 === n); subst.
+    + intro H.
+      auto.
+    + intro H; assumption.
+  - intros x y m n H.
+    auto.
+  - intros x y m n. 
+    simpl.
+    intro H.
+    destruct H as [H1 H2].
+    split.
+    + apply IHt1 with x; assumption.
+    + apply IHt2 with x; assumption.
+  - intros x y m n.
+    simpl.
+    intro H.
+    apply IHt with x; assumption.
+  - intros x y m n.
+    simpl.
+    intro H.
+    apply IHt with x; assumption.
+Qed.
+
+Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
+Proof.
+Admitted.
+
+Theorem term_equiv_lc_at: forall t, term t <-> lc_at 0 t.
+Proof.
+Admitted.
+
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
 (*
@@ -268,13 +312,21 @@ Qed.
 
 Lemma term_rename: forall t x y, term (t ^ x) -> term (t ^ y).
 Proof.
+  intros t x y Hterm.
+  apply term_to_lc_at in Hterm.
+  apply term_equiv_lc_at.
+  apply lc_at_open_rec_rename with x.
+  assumption.
+Qed.
+
+(*
   induction t0.
   - intros x y H1.
     unfold open in *.
     destruct(n === 0).
     + rewrite e in *.
       simpl in *.
-      admit.
+      apply term_var.
     + admit.
   - intros x y H1.
     unfold open in *.
@@ -294,7 +346,7 @@ Proof.
     unfold open in *.
     admit.
   - admit.
-Admitted.
+Admitted. *)
 
 Lemma ind_max: forall t u n, term ({n ~> u}t) -> ~ (has_free_index (S n) t).
 Proof.
@@ -600,16 +652,8 @@ Proof.
       * rewrite e.
    Admitted.
 
-(*
-Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
-  match t with
-  | pterm_bvar i    => i < k
-  | pterm_fvar x    => True
-  | pterm_app t1 t2 => lc_at k t1 /\ lc_at k t2
-  | pterm_abs t1    => lc_at (S k) t1
-  | pterm_labs t1    => lc_at (S k) t1
-  end.
 
+(*
 (** Provar equivalência entre lc_at e term/lterm *)
 
 (** term ({k ~> t3} ({i ~> t2} t1)) sse
