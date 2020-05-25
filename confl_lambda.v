@@ -273,6 +273,26 @@ Qed.
 
 Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
 Proof.
+  intros t; induction t.
+  - intros Hterm.
+    simpl.
+    inversion Hterm.
+  - intros Hterm.
+    simpl.
+    split.
+  - intros Hterm.
+    inversion Hterm.
+    apply IHt1 in H1.
+    apply IHt2 in H2.
+    simpl.
+    split.
+    + assumption.
+    + assumption.
+  - intros Hterm.
+    inversion Hterm.
+    admit.
+  - intros Hterm.
+    inversion Hterm.
 Admitted.
 
 Theorem term_equiv_lc_at: forall t, term t <-> lc_at 0 t.
