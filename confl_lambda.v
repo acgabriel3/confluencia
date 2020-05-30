@@ -271,33 +271,86 @@ Proof.
     apply IHt with x; assumption.
 Qed.
 
+Lemma lc_at_weaken: forall t n m, n <= m -> lc_at n t -> lc_at m t.
+Proof.
+  intro t; induction t.
+  - intros n' m Hleq.
+    simpl.
+    intro Hlt.
+    apply Nat.lt_le_trans with n'; assumption.
+  - intros n m Hleq.
+    auto.
+  - intros n m Hleq.
+    simpl.
+    intro H.
+    destruct H as [H1 H2].
+    split.
+    + apply IHt1 with n; assumption.
+    + apply IHt2 with n; assumption.
+  - intros n m Hleq.
+    simpl.
+    apply IHt.
+    apply le_n_S; assumption.
+  - intros n m Hleq.
+    simpl.
+    intro H.
+    apply IHt with (S n).
+    + apply le_n_S; assumption.
+    + assumption.
+Qed.
+  
+Lemma lc_at_open: forall t m x, lc_at m ({m ~> pterm_fvar x} t) -> lc_at (S m) t.
+Proof.
+  intro t; induction t.
+  - intros m x.
+    simpl.
+    destruct (m === n).
+    + subst.
+      intro H.
+      apply Nat.lt_succ_diag_r.
+    + simpl.
+      intro H.
+      apply Nat.lt_lt_succ_r; assumption.
+  - intros m x.
+    auto.
+  - intros m x.
+    simpl.
+    intro H.
+    destruct H as [H1 H2].
+    split.
+    + apply IHt1 with x; assumption.
+    + apply IHt2 with x; assumption.
+  - intros m x.
+    simpl.
+    apply IHt.
+  - intros m x.
+    simpl.
+    intro H.
+    apply IHt with x; assumption.
+Qed.
+
 Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
 Proof.
-  intros t; induction t.
-  - intros Hterm.
-    simpl.
-    inversion Hterm.
-  - intros Hterm.
-    simpl.
-    split.
-  - intros Hterm.
-    inversion Hterm.
-    apply IHt1 in H1.
-    apply IHt2 in H2.
-    simpl.
-    split.
-    + assumption.
-    + assumption.
-  - intros Hterm.
-    inversion Hterm.
-    admit.
-  - intros Hterm.
-    inversion Hterm.
-Admitted.
+  intros t Hterm.
+  induction Hterm.
+  - simpl.
+    auto.
+  - simpl.
+    split; assumption.
+  - pick_fresh x.
+    apply notin_union in Fr.
+    destruct Fr as [Fr H1].
+    apply H0 in Fr.
+    unfold open in Fr.
+    apply lc_at_open in Fr.
+    assumption.
+Qed.
 
 Theorem term_equiv_lc_at: forall t, term t <-> lc_at 0 t.
 Proof.
-Admitted.
+  intro t; split.
+  - apply term_to_lc_at.
+  - Admitted.
 
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
