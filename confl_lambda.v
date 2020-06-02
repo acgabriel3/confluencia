@@ -346,11 +346,28 @@ Proof.
     assumption.
 Qed.
 
+(* Como resolver o problema abaixo?
+Theorem : forall v:nat, term (pterm_fvar v) -> lc_at 0 (pterm_fvar v).
+Proof.
+  intros v H1.
+  inversion H1.
+Admitted.
+*)
 Theorem term_equiv_lc_at: forall t, term t <-> lc_at 0 t.
 Proof.
   intro t; split.
   - apply term_to_lc_at.
-  - Admitted.
+  - induction t.
+    + intros H1.
+      simpl in *.
+      inversion H1.
+    + intros H1.
+      simpl in *.
+      admit.
+    + admit.
+    + admit.
+    + admit.
+Admitted.
 
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
