@@ -214,26 +214,45 @@ Inductive term : pterm -> Prop :=
 
 Definition body t :=
   exists L, forall x, x \notin L -> term (t ^ x).
+(*
+Definition lterm t := term t \/ 
+ *)
 
 Inductive lterm : pterm -> Prop :=
-  | term_lvar : forall x,
-      lterm (pterm_fvar x)
-  | term_lapp : forall t1 t2,
-      lterm t1 -> 
-      lterm t2 -> 
-      lterm (pterm_app t1 t2)
-  | term_lrdx : forall L t1 t2,
+  | lterm_term : forall t,
+      term t -> lterm t
+  | lterm_labs : forall L t1,
       (forall x, x \notin L -> lterm (t1 ^ x)) ->
-      lterm t2 -> 
-      lterm (pterm_app (pterm_labs t1) t2)
-  | term_labs : forall L t1,
-      (forall x, x \notin L -> lterm (t1 ^ x)) ->
-      lterm (pterm_abs t1).
+      lterm (pterm_labs t1).
 
 Definition lbody t :=
   exists L, forall x, x \notin L -> lterm (t ^ x).
 
 Hint Constructors lterm term.
+
+Fixpoint pterm_size (t : pterm) : nat :=
+ match t with
+ | pterm_bvar i    => 1
+ | pterm_fvar x    => 1
+ | pterm_app t1 t2 => (pterm_size t1) + (pterm_size t2)
+ | pterm_abs t1    => 1 + (pterm_size t1)
+ | pterm_labs t1   => 1 + (pterm_size t1)
+ end.
+
+Lemma pterm_size_induction :
+ forall P : pterm -> Prop,
+ (forall n, P (pterm_bvar n)) ->
+ (forall x, P (pterm_fvar x)) ->
+ (forall t1 t2, P t1 -> P t2 -> P (pterm_app t1 t2)) ->
+ (forall t1,
+    (forall t2 x, x \notin fv t2 -> pterm_size t2 = pterm_size t1 ->
+    P (t2 ^ x)) -> P (pterm_abs t1)) ->
+ (forall t1,
+    (forall t2 x, x \notin fv t2 -> pterm_size t2 = pterm_size t1 ->
+    P (t2 ^ x)) -> P (pterm_labs t1)) ->
+ (forall t, P t).
+Proof.
+  Admitted.
 
 Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   match t with
@@ -299,35 +318,42 @@ Proof.
     + assumption.
 Qed.
   
-Lemma lc_at_open: forall t m x, lc_at m ({m ~> pterm_fvar x} t) -> lc_at (S m) t.
+Lemma lc_at_open: forall t m x, lc_at m ({m ~> pterm_fvar x} t) <-> lc_at (S m) t.
 Proof.
-  intro t; induction t.
-  - intros m x.
-    simpl.
-    destruct (m === n).
-    + subst.
+  intros t m x; split.
+  - generalize dependent x.
+    generalize dependent m.
+    induction t.
+    + intros m x.
+      simpl.
+      destruct (m === n).
+      * subst.
+        intro H.
+        apply Nat.lt_succ_diag_r.
+      * simpl.
+        intro H.
+        apply Nat.lt_lt_succ_r; assumption.
+    + intros m x.
+      auto.
+    + intros m x.
+      simpl.
       intro H.
-      apply Nat.lt_succ_diag_r.
-    + simpl.
+      destruct H as [H1 H2].
+      split.
+      * apply IHt1 with x; assumption.
+      * apply IHt2 with x; assumption.
+    + intros m x.
+      simpl.
+      apply IHt.
+    + intros m x.
+      simpl.
       intro H.
-      apply Nat.lt_lt_succ_r; assumption.
-  - intros m x.
-    auto.
-  - intros m x.
-    simpl.
-    intro H.
-    destruct H as [H1 H2].
-    split.
-    + apply IHt1 with x; assumption.
-    + apply IHt2 with x; assumption.
-  - intros m x.
-    simpl.
-    apply IHt.
-  - intros m x.
-    simpl.
-    intro H.
-    apply IHt with x; assumption.
-Qed.
+      apply IHt with x; assumption.
+  - generalize dependent x.
+    generalize dependent m.
+    induction t.
+Admitted.
+
 
 Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
 Proof.
@@ -346,6 +372,20 @@ Proof.
     assumption.
 Qed.
 
+Lemma lterm_to_lc_at : forall t, lterm t -> lc_at 0 t.
+Proof.
+  intros t Hterm.
+  induction Hterm.
+  - apply term_to_lc_at; assumption.
+  - simpl.
+    pick_fresh x.
+    apply notin_union in Fr.
+    destruct Fr as [Fr H1].
+    apply H0 in Fr.
+    apply lc_at_open in Fr.
+    assumption.    
+Qed.
+
 (* Como resolver o problema abaixo?
 Theorem : forall v:nat, term (pterm_fvar v) -> lc_at 0 (pterm_fvar v).
 Proof.
@@ -353,20 +393,32 @@ Proof.
   inversion H1.
 Admitted.
 *)
-Theorem term_equiv_lc_at: forall t, term t <-> lc_at 0 t.
+Theorem lterm_equiv_lc_at: forall t, lterm t <-> lc_at 0 t.
 Proof.
   intro t; split.
-  - apply term_to_lc_at.
-  - induction t.
+  - apply lterm_to_lc_at.
+  - induction t using pterm_size_induction.
     + intros H1.
       simpl in *.
       inversion H1.
     + intros H1.
-      simpl in *.
+      apply lterm_term.
+      apply term_var.
+    + admit.
+    + simpl. intro Hlc.
+      apply lterm_term.
+      apply term_abs with (fv t0).
+      intros x Hfv.
+      apply term_to_lc_at.
       admit.
-    + admit.
-    + admit.
-    + admit.
+    + simpl.
+      intro Hlc.
+      apply lterm_labs with (fv t0).
+      intros x Hfv.
+      apply H.
+      * assumption.
+      * reflexivity.
+      * apply lc_at_open; assumption.
 Admitted.
 
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
