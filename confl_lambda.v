@@ -239,6 +239,23 @@ Fixpoint pterm_size (t : pterm) : nat :=
  | pterm_labs t1   => 1 + (pterm_size t1)
  end.
 
+Lemma pterm_size_gt_0: forall t, pterm_size t > 0.
+Proof.
+  intro t; induction t.
+Admitted.
+
+Lemma pterm_size_open_rec: forall t n x, pterm_size t = pterm_size (open_rec n x t).
+Proof.
+  intro t; induction t.
+Admitted.
+
+Lemma strong_induction :
+ forall (P: nat -> Prop),
+   (forall n, (forall m, m < n -> P m) -> P n) ->
+   (forall n, P n).
+Proof.
+  Admitted.
+
 Lemma pterm_size_induction :
  forall P : pterm -> Prop,
  (forall n, P (pterm_bvar n)) ->
@@ -252,20 +269,44 @@ Lemma pterm_size_induction :
     P (t2 ^ x)) -> P (pterm_labs t1)) ->
  (forall t, P t).
 Proof.
-  intros h1 h2 h3 h4 h5 h6.
-  induction t0.
-  - apply h2.
-  - apply h3.
-  - apply h4.
-    + assumption.
-    + assumption.
-  - apply h5.
+  intros P h1 h2 h3 h4 h5 t.
+  remember (pterm_size t) as n.
+  generalize dependent t.
+  induction n using strong_induction.
+  intro t; destruct t.
+  - intro Hsize.
+    apply h1.
+  - intro Hsize.
+    apply h2.
+  - simpl.
+    intro Hsize.
+    apply h3.
+    + apply H with (pterm_size t1).
+      * rewrite Hsize.
+        assert (Ht2: pterm_size t2 > 0).
+        {
+          apply pterm_size_gt_0.
+        }
+        rewrite Nat.add_comm.
+        apply Nat.lt_add_pos_l.
+        assumption.
+      * reflexivity.
+    + admit.
+  - simpl.
+    intro Hsize.
+    apply h4.
     intros t2 x Hfv Hequals.
-    admit.
-  - apply h6.
-    intros t2 x Hfv Hequals.
-    admit.
-  Admitted.
+    apply H with (pterm_size t0).
+    rewrite Hsize.
+    apply Nat.lt_succ_diag_r.
+    assert (Hopen: pterm_size t2 = pterm_size (open_rec 0 (pterm_fvar x) t2)).
+    {
+      apply pterm_size_open_rec.
+    }
+    unfold open.
+    rewrite <- Hopen.
+    symmetry; assumption.
+  - Admitted.
 
 Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   match t with
