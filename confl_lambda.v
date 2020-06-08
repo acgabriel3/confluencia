@@ -252,6 +252,19 @@ Lemma pterm_size_induction :
     P (t2 ^ x)) -> P (pterm_labs t1)) ->
  (forall t, P t).
 Proof.
+  intros h1 h2 h3 h4 h5 h6.
+  induction t0.
+  - apply h2.
+  - apply h3.
+  - apply h4.
+    + assumption.
+    + assumption.
+  - apply h5.
+    intros t2 x Hfv Hequals.
+    admit.
+  - apply h6.
+    intros t2 x Hfv Hequals.
+    admit.
   Admitted.
 
 Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
