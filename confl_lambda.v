@@ -242,11 +242,28 @@ Fixpoint pterm_size (t : pterm) : nat :=
 Lemma pterm_size_gt_0: forall t, pterm_size t > 0.
 Proof.
   intro t; induction t.
+  - simpl.
+    auto.
+  - simpl.
+    auto.
+  - simpl.
+    admit.
+  - simpl.
+    auto.
+  - simpl.
+    auto.
 Admitted.
 
 Lemma pterm_size_open_rec: forall t n x, pterm_size t = pterm_size (open_rec n x t).
 Proof.
   intro t; induction t.
+  - (* On the substituition the n0 can be anything major than 1 *)
+    intros n0 x.
+    simpl({n0 ~> x} pterm_bvar n).
+    destruct(n0 === n).
+    + admit.
+    + simpl.
+      reflexivity.
 Admitted.
 
 Lemma strong_induction :
