@@ -254,7 +254,7 @@ Proof.
     auto.
 Qed.
 
-Lemma pterm_size_open_rec: forall t n x, pterm_size t = pterm_size (open_rec n x t).
+Lemma pterm_size_open_rec: forall t n x, pterm_size t = pterm_size (open_rec n (pterm_fvar x) t).
 Proof.
   intro t; induction t.
   - (* On the substituition the n0 can be anything major than 1 *)
