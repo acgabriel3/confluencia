@@ -247,12 +247,12 @@ Proof.
   - simpl.
     auto.
   - simpl.
-    admit.
+    apply Nat.add_pos_r; assumption.
   - simpl.
     auto.
   - simpl.
     auto.
-Admitted.
+Qed.
 
 Lemma pterm_size_open_rec: forall t n x, pterm_size t = pterm_size (open_rec n x t).
 Proof.
