@@ -257,14 +257,25 @@ Qed.
 Lemma pterm_size_open_rec: forall t n x, pterm_size t = pterm_size (open_rec n (pterm_fvar x) t).
 Proof.
   intro t; induction t.
-  - (* On the substituition the n0 can be anything major than 1 *)
-    intros n0 x.
-    simpl({n0 ~> x} pterm_bvar n).
-    destruct(n0 === n).
-    + admit.
-    + simpl.
-      reflexivity.
-Admitted.
+  - intros n0 x.
+    simpl.
+    destruct(n0 === n); reflexivity.
+  - intros n x.
+    reflexivity.
+  - intros n x.
+    simpl.
+    rewrite <- IHt1.
+    rewrite <- IHt2.
+    reflexivity.
+  - intros n x.
+    simpl.
+    rewrite <- IHt.
+    reflexivity.
+  - intros n x.
+    simpl.
+    rewrite <- IHt.
+    reflexivity.
+Qed.
 
 Lemma strong_induction :
  forall (P: nat -> Prop),
@@ -308,7 +319,15 @@ Proof.
         apply Nat.lt_add_pos_l.
         assumption.
       * reflexivity.
-    + admit.
+    + apply H with (pterm_size t2).
+      * rewrite Hsize.
+        assert (Ht2: pterm_size t1 > 0).
+        {
+          apply pterm_size_gt_0.
+        }
+        apply Nat.lt_add_pos_l.
+        apply Ht2.
+      * reflexivity.
   - simpl.
     intro Hsize.
     apply h4.
@@ -323,7 +342,21 @@ Proof.
     unfold open.
     rewrite <- Hopen.
     symmetry; assumption.
-  - Admitted.
+  - simpl.
+    intro Hsize.
+    apply h5.
+    intros t2 x Hfv Hequals.
+    apply H with (pterm_size t0).
+    rewrite Hsize.
+    apply Nat.lt_succ_diag_r.
+    assert (Hopen: pterm_size t2 = pterm_size (open_rec 0 (pterm_fvar x) t2)).
+    {
+      apply pterm_size_open_rec.
+    }
+    unfold open.
+    rewrite <- Hopen.
+    symmetry; assumption.
+Qed.
 
 Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   match t with
@@ -423,6 +456,19 @@ Proof.
   - generalize dependent x.
     generalize dependent m.
     induction t.
+    + intros m x Hat.
+      simpl.
+      destruct(m ===n).
+      * simpl.
+        auto.
+      * unfold lc_at in *.
+        (* why this lemma don't can be applied in this situation? 
+        apply Nat.lt_lt_succ_r. *)
+        admit.
+    + admit.
+    + admit.
+    + admit.
+    + admit.
 Admitted.
 
 
