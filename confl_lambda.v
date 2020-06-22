@@ -282,7 +282,21 @@ Lemma strong_induction :
    (forall n, (forall m, m < n -> P m) -> P n) ->
    (forall n, P n).
 Proof.
-  Admitted.
+  intros P H.
+  cut (forall n m, m < n -> P m).
+  - intros H' n.
+    apply H.
+    apply H'.
+  - induction n.
+    + intros m H'.
+      inversion H'.
+    + intros m Hlt.
+      apply H.
+      intros m' Htl.
+      apply IHn.
+      apply lt_n_Sm_le in Hlt.
+      apply Nat.lt_le_trans with m; assumption.
+Qed.
 
 Lemma pterm_size_induction :
  forall P : pterm -> Prop,
