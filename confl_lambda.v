@@ -244,6 +244,12 @@ Definition lbody t :=
 
 Hint Constructors lterm term.
 
+Lemma lterm_implies_term: forall t, lterm t -> term t.
+Proof.
+  intros t Hlterm.
+  induction Hlterm.
+  Admitted.
+
 Fixpoint pterm_size (t : pterm) : nat :=
  match t with
  | pterm_bvar i    => 1
@@ -564,7 +570,6 @@ Proof.
   intros v H1.
   inversion H1.
 Admitted.
- *)
 
 Theorem lterm_equiv_lc_at: forall t, lterm t <-> lc_at 0 t.
 Proof.
@@ -573,7 +578,6 @@ Proof.
   - intro H. 
     Admitted.
 
-(*
     induction t using pterm_size_induction.
     + intros H1.
       simpl in *.
@@ -739,7 +743,6 @@ Proof.
     clear L H Fr Hn H0 L0 H2 Fr0 Hn' Hx Ht0.
     replace ({0 ~> pterm_fvar z} ({1 ~> pterm_fvar x} t0)) with ({1 ~> pterm_fvar x} ({0 ~> pterm_fvar z} t0)) in HL0.
     + apply ind_max in HL0.
-    + admit.
 Admitted.
 
 Lemma open_rec_close_rec_term: forall t u k, ~(has_free_index k t) -> open_rec k u t = t.
@@ -913,7 +916,7 @@ Proof.
     apply IHt1.
 Admitted.
     
-Lemma subst_lemma: forall (t1 t2 t3: pterm) (i j:nat), term t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> {j ~> t3} t2} ({j ~> t3} t1).
+Lemma subst_lemma_for_lterms: forall (t1 t2 t3: pterm) (i j:nat), lterm t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> {j ~> t3} t2} ({j ~> t3} t1).
 Proof.
   intro t1; induction t1.
   - intros t2 t3 i j Ht3 Hij.
@@ -933,41 +936,35 @@ Proof.
       destruct (j === n).
       * rewrite subst_term.
         ** reflexivity.
-        ** assumption.
+        ** apply lterm_implies_term; assumption. 
       * simpl.
         destruct (i === n).
         ** contradiction.
         ** reflexivity.
   - intros t2 t3 i h ht3 hdif.
-    simpl.
     reflexivity.
   - intros t2 t3 i j ht3 hdif.
     simpl.
     rewrite IHt1_1.
-    rewrite IHt1_2.
-    reflexivity.
-    + assumption.
-    + assumption.
+    + rewrite IHt1_2.
+      reflexivity.
+      * assumption.
+      * assumption.
     + assumption.
     + assumption.
   - intros t2 t3 i j ht3 hdif.
     simpl.
     rewrite IHt1.
-    f_equal.
-   (* quando as substituições são enviadas para dentro do abs, não deveria suceder em ambos j?*)
-    admit.
-   + assumption.
-   + (* Qual manipulação algébrica realizar? *)
-      admit.
+    + admit.
+    + assumption.
+    + apply not_eq_S; assumption.
   - intros t2 t3 i j ht3 hdif.
     simpl.
     rewrite IHt1.
-    f_equal.
-    case t1.
-    + intros k.
-      destruct (k === j).
-      * rewrite e.
-   Admitted.
+    + admit.
+    + assumption.
+    + apply not_eq_S; assumption.
+Admitted.
 
 
 (*
