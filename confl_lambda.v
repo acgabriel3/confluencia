@@ -216,14 +216,28 @@ Definition body t :=
   exists L, forall x, x \notin L -> term (t ^ x).
 (*
 Definition lterm t := term t \/ 
- *)
 
 Inductive lterm : pterm -> Prop :=
   | lterm_term : forall t,
       term t -> lterm t
   | lterm_labs : forall L t1,
       (forall x, x \notin L -> lterm (t1 ^ x)) ->
-      lterm (pterm_labs t1).
+      lterm (pterm_labs t1). *)
+
+Inductive lterm : pterm -> Prop :=
+  | lterm_var : forall x,
+      lterm (pterm_fvar x)
+  | lterm_app : forall t1 t2,
+      lterm t1 -> 
+      lterm t2 -> 
+      lterm (pterm_app t1 t2)
+  | lterm_abs : forall L t1,
+      (forall x, x \notin L -> lterm (t1 ^ x)) ->
+      lterm (pterm_abs t1)
+  | lterm_labs : forall L t1 t2,
+      (forall x, x \notin L -> lterm (t1 ^ x)) ->
+      lterm t2 ->
+      lterm (pterm_app (pterm_labs t1) t2).
 
 Definition lbody t :=
   exists L, forall x, x \notin L -> lterm (t ^ x).
@@ -476,15 +490,30 @@ Proof.
       * simpl.
         auto.
       * unfold lc_at in *.
-        (* why this lemma don't can be applied in this situation? 
-        apply Nat.lt_lt_succ_r. *)
-        admit.
-    + admit.
-    + admit.
-    + admit.
-    + admit.
-Admitted.
-
+        apply lt_n_Sm_le in Hat.
+        apply le_lt_or_eq in Hat.
+        destruct Hat.
+        ** assumption.
+        ** symmetry in H.
+          contradiction.
+    + intros m x H.
+      simpl in *.
+      auto.
+    + intros m x H.
+      simpl in H.
+      destruct H as [H1 H2].
+      simpl; split.
+      * apply IHt1; assumption.
+      * apply IHt2; assumption.
+    + intros m x H.
+      simpl in H.
+      simpl.
+      apply IHt; assumption.
+    + intros m x H.
+      simpl in H.
+      simpl.
+      apply IHt; assumption.
+Qed.
 
 Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
 Proof.
@@ -507,14 +536,26 @@ Lemma lterm_to_lc_at : forall t, lterm t -> lc_at 0 t.
 Proof.
   intros t Hterm.
   induction Hterm.
-  - apply term_to_lc_at; assumption.
+  - simpl.
+    auto.
+  - simpl; split; assumption.
   - simpl.
     pick_fresh x.
     apply notin_union in Fr.
     destruct Fr as [Fr H1].
     apply H0 in Fr.
     apply lc_at_open in Fr.
-    assumption.    
+    assumption.
+  - simpl; split.
+    + pick_fresh x.
+    apply notin_union in Fr.
+    destruct Fr as [Fr H2].
+    apply notin_union in Fr.
+    destruct Fr as [Fr H1].
+    apply H0 in Fr.
+    apply lc_at_open in Fr.
+    assumption.
+    + assumption.
 Qed.
 
 (* Como resolver o problema abaixo?
@@ -523,34 +564,36 @@ Proof.
   intros v H1.
   inversion H1.
 Admitted.
-*)
+ *)
+
 Theorem lterm_equiv_lc_at: forall t, lterm t <-> lc_at 0 t.
 Proof.
   intro t; split.
   - apply lterm_to_lc_at.
-  - induction t using pterm_size_induction.
+  - intro H. 
+    Admitted.
+
+(*
+    induction t using pterm_size_induction.
     + intros H1.
       simpl in *.
       inversion H1.
     + intros H1.
-      apply lterm_term.
-      apply term_var.
-    + admit.
+      apply lterm_var.
+    + simpl. 
+      intro H.
+      destruct H as [H1 H2].
+      apply lterm_app.
+      * apply IHt1; assumption.
+      * apply IHt2; assumption.
     + simpl. intro Hlc.
-      apply lterm_term.
-      apply term_abs with (fv t0).
-      intros x Hfv.
-      apply term_to_lc_at.
-      admit.
-    + simpl.
-      intro Hlc.
-      apply lterm_labs with (fv t0).
+      apply lterm_abs with (fv t0).
       intros x Hfv.
       apply H.
       * assumption.
       * reflexivity.
       * apply lc_at_open; assumption.
-Admitted.
+    + Admitted. *)
 
 (* -Os pré-termos dentro da aplicação e abstrações deveriam ser termos 
    -O lemma provavelmente não pode valer para o caso da variável ligada*)
@@ -587,10 +630,11 @@ Lemma term_rename: forall t x y, term (t ^ x) -> term (t ^ y).
 Proof.
   intros t x y Hterm.
   apply term_to_lc_at in Hterm.
-  apply term_equiv_lc_at.
+  Admitted.
+(*  apply term_equiv_lc_at.
   apply lc_at_open_rec_rename with x.
   assumption.
-Qed.
+Qed. *)
 
 (*
   induction t0.
