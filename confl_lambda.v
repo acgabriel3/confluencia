@@ -248,7 +248,12 @@ Lemma lterm_implies_term: forall t, lterm t -> term t.
 Proof.
   intros t Hlterm.
   induction Hlterm.
-  Admitted.
+  - apply term_var; assumption.
+  - apply term_app; assumption.
+  - apply term_abs with L; assumption.
+  - (* apply lterm_labs with L. *)
+    admit.
+Admitted.
 
 Fixpoint pterm_size (t : pterm) : nat :=
  match t with
@@ -714,7 +719,7 @@ Proof.
       intros x0 Hfv.
       apply term_rename with y.
       assumption.
-    +admit.
+    + admit.
   - intro Hfree.
     clear IHt0.
     unfold body in H1.
