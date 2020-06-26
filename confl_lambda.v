@@ -251,8 +251,9 @@ Proof.
   - apply term_var; assumption.
   - apply term_app; assumption.
   - apply term_abs with L; assumption.
-  - (* apply lterm_labs with L. *)
-    admit.
+  - apply term_app.
+    + admit.
+    + assumption.
 Admitted.
 
 Fixpoint pterm_size (t : pterm) : nat :=
