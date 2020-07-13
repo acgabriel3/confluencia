@@ -1686,9 +1686,24 @@ Proof.
     + assumption.
     + Admitted *)
 
+Lemma phi_preserves_term: forall t, term t -> term (phi t).
+Proof.
+  intros t H.
+  induction H.
+  Admitted.
+  
 Lemma beta_phi_one_step: forall t1 t2, t1 -->lB t2 -> phi(t1) -->B phi(t2).
 Proof.
-Admitted.
+  intros t1 t2 H.
+  induction H.
+  - inversion H; subst.
+    + simpl.
+      rewrite phi_subst.
+      apply redex.
+      apply reg_rule_b.
+      * admit.        
+      * apply phi_preserves_term; assumption.
+    + Admitted.
   
 Lemma beta_phi: forall t1 t2, t1 -->>lB t2 -> phi(t1) -->>B phi(t2).
 Proof.
