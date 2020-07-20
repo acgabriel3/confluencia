@@ -1686,6 +1686,10 @@ Proof.
     + assumption.
     + Admitted *)
 
+Lemma erase_lbeta: forall t1 t2, t1 -->>B t2 -> (forall t1', erase(t1') = t1 -> forall t2', erase(t2') = t2 -> t1' -->>lB t2').
+Proof.
+Admitted.
+
 Lemma phi_preserves_term: forall t, term t -> term (phi t).
 Proof.
   intros t H.
@@ -1713,3 +1717,47 @@ Proof.
   - apply beta_phi_one_step in H.
     apply atleast1; assumption.
   - Admitted.
+
+Lemma erase_phi: forall t t1 t2, erase(t) = t1 -> phi(t) = t2 -> t1 -->>B t2.
+Proof.
+Admitted.
+
+Lemma term_erase: forall t, term t -> erase(t) = t.
+Proof.
+  Admitted.
+
+Lemma body_erase: forall t, body t -> erase(t) = t.
+Proof.
+  Admitted.
+
+Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3.
+Proof.
+  intros t t1 t2 H1 H2.
+  assert (H2' := H2).
+  assert (forall t', erase(t') = t -> forall t2', erase(t2') = t2 -> t' -->>lB t2').
+  {
+    apply erase_lbeta; assumption.   
+  }
+  inversion H1; subst.
+  - inversion H0; subst.
+    assert (erase (pterm_app (pterm_labs t0) u) = pterm_app (pterm_abs t0) u -> forall t2', erase t2' = t2 -> pterm_app (pterm_labs t0) u -->>lB t2').
+    {
+      apply H.
+    }
+    clear H.
+    assert (erase (pterm_app (pterm_labs t0) u) = pterm_app (pterm_abs t0) u).
+    {
+      simpl.
+      rewrite body_erase.
+      - rewrite term_erase.
+        + reflexivity.
+        + assumption.
+      - assumption.
+    }
+    assert (forall t2' : pterm, erase t2' = t2 -> pterm_app (pterm_labs t0) u -->>lB t2').
+    {
+      apply H5.
+      assumption.
+    }
+    clear H H5.
+    Admitted.
