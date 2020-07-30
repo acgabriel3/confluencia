@@ -1720,7 +1720,36 @@ Proof.
 
 Lemma erase_phi: forall t t1 t2, erase(t) = t1 -> phi(t) = t2 -> t1 -->>B t2.
 Proof.
-Admitted.
+  (*intros t0 t1 t2 Herase Hphi.
+  induction t0.
+  - simpl in *.
+    rewrite Herase in Hphi.
+    rewrite Hphi.
+    apply reflex.
+  - simpl in *.
+    rewrite Herase in Hphi.
+    rewrite Hphi.
+    apply reflex.
+  - (*seems that we have a contradiction, this just will occur if t0_1 do not 
+      have a lterm*)
+    simpl in Herase. *)
+
+  induction t0 using pterm_size_induction.
+  - intros t1 t2 Herase Hphi.
+    simpl in *.
+    rewrite Herase in Hphi.
+    rewrite Hphi.
+    apply reflex.
+  - intros t1 t2 Herase Hphi.
+    simpl in *.
+    rewrite Herase in Hphi.
+    rewrite Hphi.
+    apply reflex.
+  - intros t1 t2 Herase Hphi.
+    apply IHt0_1.
+    + (* same problem *)
+    admit.
+  Admitted.
 
 Lemma term_erase: forall t, term t -> erase(t) = t.
 Proof.
