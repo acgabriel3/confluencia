@@ -1,7 +1,10 @@
+(* begin hide *)
 Definition var := nat.
 
 Require Import Arith MSetList Setoid.
 
+Set Nested Proofs Allowed.
+    
 Declare Module Var_as_OT : UsualOrderedType
   with Definition t := var.
 Module Import VarSet := MSetList.Make Var_as_OT.
@@ -22,8 +25,12 @@ Proof. exact eq_nat_dec. Qed.
 
 Notation "x == y" := (eq_var_dec x y) (at level 67).
 Notation "i === j" := (Peano_dec.eq_nat_dec i j) (at level 67).
+(* end hide *)
+
+(** * Locally Nameless Notation *)
 
 (** Pre-terms are defined according to the following grammar: *)
+
 Inductive pterm : Set :=
   | pterm_bvar : nat -> pterm
   | pterm_fvar : var -> pterm
@@ -36,7 +43,7 @@ Inductive ctx (t:pterm) :=
 | ctx_empty: t.
 ???
  *)
-
+(* begin hide *)
 Fixpoint fv (t : pterm) : vars :=
   match t with
   | pterm_bvar i    => {}
@@ -172,6 +179,7 @@ apply iff_stepl with (~((x \in E) \/ (x \in F))).
 - apply not_or.
 - split; unfold not; intros; destruct H; apply union_spec in H0; assumption.
 Qed.
+(* end hide *)
 
 Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   match t with
@@ -1686,9 +1694,11 @@ Proof.
     + assumption.
     + Admitted *)
 
-Lemma erase_lbeta: forall t1 t2, t1 -->>B t2 -> (forall t1', erase(t1') = t1 -> forall t2', erase(t2') = t2 -> t1' -->>lB t2').
+(*
+Lemma erase_lbeta_2313: forall t1 t2, t1 -->>B t2 -> (forall t1', erase(t1') = t1 -> forall t2', erase(t2') = t2 -> t1' -->>lB t2').
 Proof.
 Admitted.
+*)
 
 Lemma phi_preserves_term: forall t, term t -> term (phi t).
 Proof.
@@ -1734,7 +1744,7 @@ Proof.
       have a lterm*)
     simpl in Herase. *)
 
-  induction t0 using pterm_size_induction.
+  intro t; induction t using pterm_size_induction.
   - intros t1 t2 Herase Hphi.
     simpl in *.
     rewrite Herase in Hphi.
@@ -1745,10 +1755,7 @@ Proof.
     rewrite Herase in Hphi.
     rewrite Hphi.
     apply reflex.
-  - intros t1 t2 Herase Hphi.
-    apply IHt0_1.
-    + (* same problem *)
-    admit.
+  - 
   Admitted.
 
 Lemma term_erase: forall t, term t -> erase(t) = t.
@@ -1762,6 +1769,42 @@ Proof.
 Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3.
 Proof.
   intros t t1 t2 H1 H2.
+  induction H1.
+  - inversion H; subst.
+    induction H2.
+    + exists (t1 ^^ u); split.
+      * apply reflex.
+      * apply atleast1.
+        apply redex.
+        assumption.
+    + inversion H; subst.
+      rewrite <- H3 in H.
+      clear H0 H1 H3.
+
+      inversion H2; subst.
+      * admit.
+      *
+
+      apply open_rec_inj in H3.
+      destruct H3 as [Heq1 Heq2]; subst.
+      clear H4 H6.
+      induction H2.
+      * Admitted.
+      
+
+      
+    Lemma erase_lbeta_2313: forall t1 t2, t1 -->>B t2 -> forall t1' t2', erase(t1') = t1 /\ erase(t2') = t2 -> t1' -->>lB t2'.
+    Proof.
+      Admitted.
+
+    assert (H': pterm_app (pterm_labs t1) u -->>B t2).
+    {
+      apply erase_lbeta_2313.
+    }
+     in H2 with (pterm_app (pterm_labs t1) u) _.
+    
+
+  
   assert (H2' := H2).
   assert (forall t', erase(t') = t -> forall t2', erase(t2') = t2 -> t' -->>lB t2').
   {
