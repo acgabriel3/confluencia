@@ -1,0 +1,118 @@
+\documentclass{entcs} 
+\usepackage{prentcsmacro}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{mathpartir}
+\usepackage[all]{xy}
+\usepackage[english]{babel}
+\usepackage[usenames]{color} 
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{pdfsync}
+\usepackage{coqdoc}
+
+\newcommand{\tto}{\twoheadrightarrow}
+
+\def\lastname{de Moura {\it et. al.}}
+
+\begin{document}
+\begin{frontmatter}
+  \title{TBD}
+  \author{Flávio L. C. de Moura\thanksref{flaviomoura}}
+  \author{Leandro O. Rezende\thanksref{leandro}}
+  \address{Departamento de Ciência da Computação, Universidade de Brasília, Brasília, Brazil}
+  \thanks[flaviomoura]{Email:\href{flaviomoura@unb.br}{\texttt{\normalshape flaviomoura@unb.br}}} 
+  \thanks[leandro]{Email:\href{l-ordo.ab.chao@hotmail.com}{\texttt{\normalshape l-ordo.ab.chao@hotmail.com}}}
+  
+\begin{abstract}
+  Rewriting theory is a well established model of computation
+  equivalent to the Turing machines, and the most well known rewriting
+  system is the $\lambda$-calculus. Confluence is an important and
+  undecidable property related to the determinism of the computational
+  process. Direct proofs of confluence are, in general, difficult to
+  be done. Therefore, alternative characterizations of confluence can
+  circumvent this difficulty for different contexts. This is the case
+  of the so called Z property, which has been successfully used to
+  prove confluence in several situations such as the
+  $\lambda$-calculus with $\beta\eta$-reduction, extensions of the
+  $\lambda$-calculus with explicit substitutions, the
+  $\lambda\mu$-calculus, etc. In this work we present a constructive
+  proof that the Z property implies confluence. The known proofs of
+  this fact usually rely on the law of the excluded middle, but its use is not necessary, 
+  as shown in our proof, which circumvents this necessity by using nested induction 
+  on the inductive step of the original proof. 
+  In addition, we formalized our proof and an extension of the Z
+  property, known as the Compositional Z, in the Coq proof assistant.
+\end{abstract}
+
+\begin{keyword}
+  Rewriting systems, Confluence, Interactive theorem proving, Coq
+\end{keyword}
+\end{frontmatter}
+
+\section{Introduction}
+
+
+
+Confluence is an important and undecidable property concerning the
+determinism of the computational process. In this sense, one says that
+a program is confluent if every two ways of evaluating it, result in
+the very same answer. In the particular case of Abstract Rewriting
+Systems (ARS), which are the focus of this work, confluence can be
+beautifully expressed by diagrams as we will see in the next section.
+
+The contributions of this work are as follows:
+\begin{itemize}
+\item We present a new proof that the Z property implies confluence,
+  which is constructive and based on nested induction.
+\item The proof that the Z property implies confluence is formalized
+  in the Coq proof assistant, and the presentation is made
+  interleaving English followed by the corresponding Coq code. In this
+  way, the annotations are done directly in the Coq files using the
+  coqdoc annotation style. We believe that this approach is
+  interesting for those that are not familiar with the Coq proof
+  assistant because the Coq code followed by English explanations
+  gives a good idea on how they relate to each other. This discipline
+  also forces a better organization of the formalization and of the
+  proofs so that the explanation in English is comprehensible.
+\item We formalize an extension of the Z property, known as
+  compositional Z property, as presented in
+  \cite{Nakazawa-Fujita2016}.
+\end{itemize}
+
+\input{confl_lambda.tex}
+
+% No diretório src:
+% coqdoc --latex --body-only confl-lambda.v
+
+\section{Conclusion}
+
+In this work we presented a constructive proof that the Z property
+implies confluence, an important property for rewriting systems. In
+addition, we formally proved this result in the Coq proof
+assistant. The corresponding files are available in our GitHub
+repository: \url{https://github.com/flaviodemoura/Zproperty}.
+
+The Z property was presented by V. van Oostrom as a sufficient
+condition for an ARS to be confluent~\cite{zproperty}, and since
+then has been used to prove confluence in different contexts such as
+the $\lambda$-calculus with $\beta\eta$-reduction, extensions of the
+$\lambda$-calculus with explicit substitutions and the
+$\lambda\mu$-calculus. The Coq proofs of the main results are
+commented line by line which serve both as an informal presentation of
+the proofs (i.e. proofs explained in natural language) and as its
+formal counterpart. Moreover, we formalize an extension of the Z
+property, known as compositional Z property, as presented in
+\cite{Nakazawa-Fujita2016}
+
+As future work, this formalization will be used to prove the
+confluence property of a calculus with explicit substitution based on
+the $\lambda_{ex}$-calculus (cf. ~\cite{kes09}). In addition, we hope
+that our formalization can be used as a framework for proving
+confluence of others rewriting systems.
+
+\bibliographystyle{plain}
+\bibliography{references.bib}
+
+\end{document}
