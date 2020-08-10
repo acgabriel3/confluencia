@@ -1766,11 +1766,24 @@ Lemma body_erase: forall t, body t -> erase(t) = t.
 Proof.
   Admitted.
 
+(* begin hide *)
+  esconde código
+(* end hide *)
+
+(** * Seção *)
+
+(** ** Subseção *)
+
+(** texto do relatório *)
+          
 Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3.
-Proof.
+  Proof.
   intros t t1 t2 H1 H2.
   induction H1.
   - inversion H; subst.
+    apply refltrans_equiv in H2.
+    remember (t1 ^^ u) as b.
+    generalize  dependent b.
     induction H2.
     + exists (t1 ^^ u); split.
       * apply reflex.
@@ -1783,8 +1796,9 @@ Proof.
 
       inversion H2; subst.
       * admit.
-      *
-
+      * admit.
+      * admit.
+    + 
       apply open_rec_inj in H3.
       destruct H3 as [Heq1 Heq2]; subst.
       clear H4 H6.
