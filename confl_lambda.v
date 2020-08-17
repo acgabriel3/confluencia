@@ -38,6 +38,10 @@ Inductive pterm : Set :=
   | pterm_abs  : pterm -> pterm
   | pterm_labs  : pterm -> pterm.
 
+(** A pre-term is a set of suitable symbols that fallows the mixed lambda calculus used
+in these computational formalization, a pre-term may or may not have a redex inside it. 
+This means that something with a index that was not replaced by a name is part of the pre-terms set.*)
+
 (*
 Inductive ctx (t:pterm) :=
 | ctx_empty: t.
@@ -181,6 +185,7 @@ apply iff_stepl with (~((x \in E) \/ (x \in F))).
 Qed.
 (* end hide *)
 
+(** The definition of the index replacement fallows as bellow:*)
 Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   match t with
   | pterm_bvar i    => if k === i then u else (pterm_bvar i)
@@ -190,12 +195,22 @@ Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   | pterm_labs t1    => pterm_labs (open_rec (S k) u t1)
   end.
 
+(** It is, the open_rec replaces recursively any redex in all structures defined by the mixed lambda 
+calculus. These operations occurs when there is a relative number to be replaced by something in a pre-term.*)
+
+
+(** Using the open_rec definition and in order to facilitate the proofs, the operation open
+is defined this way bellow, just for the index 0:*)
 Definition open t u := open_rec 0 u t.
 
+(** We can too define the replacement in any index:*)
 Notation "{ k ~> u } t" := (open_rec k u t) (at level 67).
+
+(*Explicar melhor as operações abaixo*)
 Notation "t ^^ u" := (open t u) (at level 67). 
 Notation "t ^ x" := (open t (pterm_fvar x)).   
 
+(* begin hide *)
 Fixpoint close_rec  (k : nat) (x : var) (t : pterm) : pterm :=
   match t with
   | pterm_bvar i    => pterm_bvar i
@@ -208,6 +223,8 @@ Fixpoint close_rec  (k : nat) (x : var) (t : pterm) : pterm :=
 Definition close t x := close_rec 0 x t.
 (* end hide *)
 
+(** The definition of term is given below:*)
+
 Inductive term : pterm -> Prop :=
   | term_var : forall x,
       term (pterm_fvar x)
@@ -219,6 +236,11 @@ Inductive term : pterm -> Prop :=
       (forall x, x \notin L -> term (t1 ^ x)) ->
       term (pterm_abs t1).
 
+(** Look that a term is a set of suitables mixed lambda calculus symbols that don't contains
+any index inside.*)
+
+(** we can define too a body, which is a given pre-term that for receiving a replacement
+becomes a term.*)
 Definition body t :=
   exists L, forall x, x \notin L -> term (t ^ x).
 (*
@@ -230,7 +252,8 @@ Inductive lterm : pterm -> Prop :=
   | lterm_labs : forall L t1,
       (forall x, x \notin L -> lterm (t1 ^ x)) ->
       lterm (pterm_labs t1). *)
-
+(** The lterm is a term, but with a marked redex, this is to have knowledge about
+the redex after any beta reduction. See the definition below:*)
 Inductive lterm : pterm -> Prop :=
   | lterm_var : forall x,
       lterm (pterm_fvar x)
