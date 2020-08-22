@@ -1,0 +1,313 @@
+\coqlibrary{confl lambda}{Library }{confl\_lambda}
+
+\begin{coqdoccode}
+\coqdocemptyline
+\end{coqdoccode}
+\section{Locally Nameless Notation}
+
+
+
+ Pré-termos são definidos de acordo com a seguinte gramática: \begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{pterm} : \coqdockw{Set} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_bvar} : \coqdocvar{nat} \ensuremath{\rightarrow} \coqdocvar{pterm}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_fvar} : \coqdocvar{var} \ensuremath{\rightarrow} \coqdocvar{pterm}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_app}  : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdocvar{pterm}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_abs}  : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdocvar{pterm}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_labs}  : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdocvar{pterm}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Um pré-termo é um termo do cálculo lambda que possui em si indexs de de Bruijin que não foram
+substituídos. (esta definição está correta?)\begin{coqdoccode}
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+A definição da operação ``variable opening'', ou seja, abertura de variáveis é dada abaixo:\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Fixpoint} \coqdocvar{open\_rec} (\coqdocvar{k} : \coqdocvar{nat}) (\coqdocvar{u} : \coqdocvar{pterm}) (\coqdocvar{t} : \coqdocvar{pterm}) : \coqdocvar{pterm} :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{match} \coqdocvar{t} \coqdockw{with}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_bvar} \coqdocvar{i}    \ensuremath{\Rightarrow} \coqdockw{if} \coqdocvar{k} === \coqdocvar{i} \coqdockw{then} \coqdocvar{u} \coqdockw{else} (\coqdocvar{pterm\_bvar} \coqdocvar{i})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_fvar} \coqdocvar{x}    \ensuremath{\Rightarrow} \coqdocvar{pterm\_fvar} \coqdocvar{x}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2} \ensuremath{\Rightarrow} \coqdocvar{pterm\_app} (\coqdocvar{open\_rec} \coqdocvar{k} \coqdocvar{u} \coqdocvar{t1}) (\coqdocvar{open\_rec} \coqdocvar{k} \coqdocvar{u} \coqdocvar{t2})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_abs} \coqdocvar{t1}    \ensuremath{\Rightarrow} \coqdocvar{pterm\_abs} (\coqdocvar{open\_rec} (\coqdocvar{S} \coqdocvar{k}) \coqdocvar{u} \coqdocvar{t1})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_labs} \coqdocvar{t1}    \ensuremath{\Rightarrow} \coqdocvar{pterm\_labs} (\coqdocvar{open\_rec} (\coqdocvar{S} \coqdocvar{k}) \coqdocvar{u} \coqdocvar{t1})\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{end}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Esta operação é responsável por substituis todos os índices ``k'', por uma variável com
+nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, assim, ao aplicar
+a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.
+
+ Assim, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
+como ``open'', onde u é o nome de uma variável qualquer e t é um pré-termo ,logo abaixo:\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{open} \coqdocvar{t} \coqdocvar{u} := \coqdocvar{open\_rec} 0 \coqdocvar{u} \coqdocvar{t}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Esta definição será extremamente útil nas provas mais abaixo, devido à maior facilidade com relação
+à trabalhar com qualquer index k.
+
+ De qualquer forma, a operação como explicada mais acima, onde k é o index de De Bruijin,
+u o nome de uma variável qualquer e t o pré-termo que será aberto recursivamente no index k é 
+definida como se segue:\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Notation} "\{ k \~{}> u \} t" := (\coqdocvar{open\_rec} \coqdocvar{k} \coqdocvar{u} \coqdocvar{t}) (\coqdoctac{at} \coqdockw{level} 67).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Notation} "t \^{}\^{} u" := (\coqdocvar{open} \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 67).\coqdoceol
+\coqdocnoindent
+\coqdockw{Notation} "t \^{} x" := (\coqdocvar{open} \coqdocvar{t} (\coqdocvar{pterm\_fvar} \coqdocvar{x})).\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+A definição de termo é dada logo abaixo:\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{term} : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{term\_var} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x},\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{term} (\coqdocvar{pterm\_fvar} \coqdocvar{x})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{term\_app} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2},\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{term} \coqdocvar{t1} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{term} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{term} (\coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{term\_abs} : \coqdockw{\ensuremath{\forall}} \coqdocvar{L} \coqdocvar{t1},\coqdoceol
+\coqdocindent{3.00em}
+(\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{t1} \^{} \coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{term} (\coqdocvar{pterm\_abs} \coqdocvar{t1}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Um termo é válido na notação de nomes locais, quando este termo é um termo fechado. 
+Para ser um termo fechado, seguimos uma definição recursiva, onde toda variável livre, e portanto
+nomeada é fechada, toda aplicação é fechada, se seus dois termos internos são fechados, e toda
+abstração é fechada, se todos os termos que fazem parte da mesma também são fechados. Veja que esta é
+exatamente a definição que temos logo acima.
+
+ Dessa forma também é interessante definir o conceito de corpo, como sendo todo pré-termo
+que após uma abertura no index 0, por uma variável nomeada livre x, torna-se um termo fechado.
+A definição está logo abaixo:\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{body} \coqdocvar{t} :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{\ensuremath{\exists}} \coqdocvar{L}, \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{t} \^{} \coqdocvar{x}).\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+Para realizar a prova da confluência é necessária a definição de um termo marcado. Um
+termo marcado contém exatamente as mesmas propriedades de um termo, exceto que, pode possuir
+abstrações marcadas. Abstrações marcadas são aquelas que estão postas em uma aplicação válida,
+resultando em uma B-redução. Abstrações que não fazem parte de uma aplicação, não podem ser 
+abstrações marcadas. Podemos ver essa definição em termos recursivos logo abaixo:\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{lterm} : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{lterm\_var} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x},\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{lterm} (\coqdocvar{pterm\_fvar} \coqdocvar{x})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{lterm\_app} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2},\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{lterm} \coqdocvar{t1} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{lterm} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{lterm} (\coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{lterm\_abs} : \coqdockw{\ensuremath{\forall}} \coqdocvar{L} \coqdocvar{t1},\coqdoceol
+\coqdocindent{3.00em}
+(\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lterm} (\coqdocvar{t1} \^{} \coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{lterm} (\coqdocvar{pterm\_abs} \coqdocvar{t1})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{lterm\_labs} : \coqdockw{\ensuremath{\forall}} \coqdocvar{L} \coqdocvar{t1} \coqdocvar{t2},\coqdoceol
+\coqdocindent{3.00em}
+(\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lterm} (\coqdocvar{t1} \^{} \coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{lterm} \coqdocvar{t2} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{lterm} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t1}) \coqdocvar{t2}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Assim, também é possível definir o corpo marcado, como sendo o pré-termo que após uma abertura
+recursiva do index 0 com uma variável nomeada livre qualquer x, torna-se um termo marcado:\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{lbody} \coqdocvar{t} :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{\ensuremath{\exists}} \coqdocvar{L}, \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lterm} (\coqdocvar{t} \^{} \coqdocvar{x}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Hint Constructors} \coqdocvar{lterm} \coqdocvar{term}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+\section{Seção}
+
+
+
+\subsection{Subseção}
+
+
+
+ texto do relatório \begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{strip\_lemma}: \coqdockw{\ensuremath{\forall}}  \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t} -->\coqdocvar{B} \coqdocvar{t1} \ensuremath{\rightarrow} \coqdocvar{t} -->>\coqdocvar{B} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdoctac{\ensuremath{\exists}} \coqdocvar{t3}, \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t3} \ensuremath{\land} \coqdocvar{t2} -->>\coqdocvar{B} \coqdocvar{t3}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Proof}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{intros} \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2} \coqdocvar{H1} \coqdocvar{H2}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{induction} \coqdocvar{H1}.\coqdoceol
+\coqdocindent{1.00em}
+- \coqdoctac{inversion} \coqdocvar{H}; \coqdoctac{subst}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{apply} \coqdocvar{refltrans\_equiv} \coqdoctac{in} \coqdocvar{H2}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{remember} (\coqdocvar{t1} \^{}\^{} \coqdocvar{u}) \coqdockw{as} \coqdocvar{b}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{generalize}  \coqdoctac{dependent} \coqdocvar{b}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{induction} \coqdocvar{H2}.\coqdoceol
+\coqdocindent{2.00em}
++ \coqdoctac{\ensuremath{\exists}} (\coqdocvar{t1} \^{}\^{} \coqdocvar{u}); \coqdoctac{split}.\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{\times} \coqdoctac{apply} \coqdocvar{reflex}.\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{\times} \coqdoctac{apply} \coqdocvar{atleast1}.\coqdoceol
+\coqdocindent{4.00em}
+\coqdoctac{apply} \coqdocvar{redex}.\coqdoceol
+\coqdocindent{4.00em}
+\coqdoctac{assumption}.\coqdoceol
+\coqdocindent{2.00em}
++ \coqdoctac{inversion} \coqdocvar{H}; \coqdoctac{subst}.\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{rewrite} \ensuremath{\leftarrow} \coqdocvar{H3} \coqdoctac{in} \coqdocvar{H}.\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{clear} \coqdocvar{H0} \coqdocvar{H1} \coqdocvar{H3}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{3.00em}
+\coqdoctac{inversion} \coqdocvar{H2}; \coqdoctac{subst}.\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
+\coqdocindent{2.00em}
++ \coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{apply} \coqdocvar{open\_rec\_inj} \coqdoctac{in} \coqdocvar{H3}.\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{destruct} \coqdocvar{H3} \coqdockw{as} [\coqdocvar{Heq1} \coqdocvar{Heq2}]; \coqdoctac{subst}.\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{clear} \coqdocvar{H4} \coqdocvar{H6}.\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{induction} \coqdocvar{H2}.\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{\times} \coqdocvar{Admitted}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\coqdocindent{2.00em}
+\coqdockw{Lemma} \coqdocvar{erase\_lbeta\_2313}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t1'} \coqdocvar{t2'}, \coqdocvar{erase}(\coqdocvar{t1'}) = \coqdocvar{t1} \ensuremath{\land} \coqdocvar{erase}(\coqdocvar{t2'}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t1'} -->>\coqdocvar{lB} \coqdocvar{t2'}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{Proof}.\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{Admitted}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{2.00em}
+\coqdoctac{assert} (\coqdocvar{H'}: \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t1}) \coqdocvar{u} -->>\coqdocvar{B} \coqdocvar{t2}).\coqdoceol
+\coqdocindent{2.00em}
+\{\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{apply} \coqdocvar{erase\_lbeta\_2313}.\coqdoceol
+\coqdocindent{2.00em}
+\}\coqdoceol
+\coqdocindent{2.50em}
+\coqdoctac{in} \coqdocvar{H2} \coqdockw{with} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t1}) \coqdocvar{u}) \coqdocvar{\_}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdoctac{assert} (\coqdocvar{H2'} := \coqdocvar{H2}).\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{assert} (\coqdockw{\ensuremath{\forall}} \coqdocvar{t'}, \coqdocvar{erase}(\coqdocvar{t'}) = \coqdocvar{t} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t2'}, \coqdocvar{erase}(\coqdocvar{t2'}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t'} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
+\coqdocindent{1.00em}
+\{\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{apply} \coqdocvar{erase\_lbeta}; \coqdoctac{assumption}.\coqdoceol
+\coqdocindent{1.00em}
+\}\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{inversion} \coqdocvar{H1}; \coqdoctac{subst}.\coqdoceol
+\coqdocindent{1.00em}
+- \coqdoctac{inversion} \coqdocvar{H0}; \coqdoctac{subst}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{assert} (\coqdocvar{erase} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u}) = \coqdocvar{pterm\_app} (\coqdocvar{pterm\_abs} \coqdocvar{t0}) \coqdocvar{u} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t2'}, \coqdocvar{erase} \coqdocvar{t2'} = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
+\coqdocindent{2.00em}
+\{\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{apply} \coqdocvar{H}.\coqdoceol
+\coqdocindent{2.00em}
+\}\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{clear} \coqdocvar{H}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{assert} (\coqdocvar{erase} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u}) = \coqdocvar{pterm\_app} (\coqdocvar{pterm\_abs} \coqdocvar{t0}) \coqdocvar{u}).\coqdoceol
+\coqdocindent{2.00em}
+\{\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{simpl}.\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{rewrite} \coqdocvar{body\_erase}.\coqdoceol
+\coqdocindent{3.00em}
+- \coqdoctac{rewrite} \coqdocvar{term\_erase}.\coqdoceol
+\coqdocindent{4.00em}
++ \coqdoctac{reflexivity}.\coqdoceol
+\coqdocindent{4.00em}
++ \coqdoctac{assumption}.\coqdoceol
+\coqdocindent{3.00em}
+- \coqdoctac{assumption}.\coqdoceol
+\coqdocindent{2.00em}
+\}\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{assert} (\coqdockw{\ensuremath{\forall}} \coqdocvar{t2'} : \coqdocvar{pterm}, \coqdocvar{erase} \coqdocvar{t2'} = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
+\coqdocindent{2.00em}
+\{\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{apply} \coqdocvar{H5}.\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{assumption}.\coqdoceol
+\coqdocindent{2.00em}
+\}\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{clear} \coqdocvar{H} \coqdocvar{H5}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Admitted}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}

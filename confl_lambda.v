@@ -29,7 +29,7 @@ Notation "i === j" := (Peano_dec.eq_nat_dec i j) (at level 67).
 
 (** * Locally Nameless Notation *)
 
-(** Pre-terms are defined according to the following grammar: *)
+(** Pré-termos são definidos de acordo com a seguinte gramática: *)
 
 Inductive pterm : Set :=
   | pterm_bvar : nat -> pterm
@@ -38,9 +38,8 @@ Inductive pterm : Set :=
   | pterm_abs  : pterm -> pterm
   | pterm_labs  : pterm -> pterm.
 
-(** A pre-term is a set of suitable symbols that fallows the mixed lambda calculus used
-in these computational formalization, a pre-term may or may not have a redex inside it. 
-This means that something with a index that was not replaced by a name is part of the pre-terms set.*)
+(** Um pré-termo é um termo do cálculo lambda que possui em si indexs de de Bruijin que não foram
+substituídos. (esta definição está correta?)*)
 
 (*
 Inductive ctx (t:pterm) :=
@@ -185,7 +184,8 @@ apply iff_stepl with (~((x \in E) \/ (x \in F))).
 Qed.
 (* end hide *)
 
-(** The definition of the index replacement fallows as bellow:*)
+(** A definição da operação "variable opening", ou seja, abertura de variáveis é dada abaixo:*)
+
 Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   match t with
   | pterm_bvar i    => if k === i then u else (pterm_bvar i)
@@ -195,18 +195,26 @@ Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   | pterm_labs t1    => pterm_labs (open_rec (S k) u t1)
   end.
 
-(** It is, the open_rec replaces recursively any redex in all structures defined by the mixed lambda 
-calculus. These operations occurs when there is a relative number to be replaced by something in a pre-term.*)
+(** Esta operação é responsável por substituis todos os índices "k", por uma variável com
+nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, assim, ao aplicar
+a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.*)
 
 
-(** Using the open_rec definition and in order to facilitate the proofs, the operation open
-is defined this way bellow, just for the index 0:*)
+(** Assim, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
+como "open", onde u é o nome de uma variável qualquer e t é um pré-termo ,logo abaixo:*)
+
 Definition open t u := open_rec 0 u t.
 
-(** We can too define the replacement in any index:*)
+(** Esta definição será extremamente útil nas provas mais abaixo, devido à maior facilidade com relação
+à trabalhar com qualquer index k.*)
+
+(** De qualquer forma, a operação como explicada mais acima, onde k é o index de De Bruijin,
+u o nome de uma variável qualquer e t o pré-termo que será aberto recursivamente no index k é 
+definida como se segue:*)
+
 Notation "{ k ~> u } t" := (open_rec k u t) (at level 67).
 
-(*Explicar melhor as operações abaixo*)
+(*não me recordo no momento a utilidade das notações abaixo*)
 Notation "t ^^ u" := (open t u) (at level 67). 
 Notation "t ^ x" := (open t (pterm_fvar x)).   
 
@@ -223,7 +231,7 @@ Fixpoint close_rec  (k : nat) (x : var) (t : pterm) : pterm :=
 Definition close t x := close_rec 0 x t.
 (* end hide *)
 
-(** The definition of term is given below:*)
+(** A definição de termo é dada logo abaixo:*)
 
 Inductive term : pterm -> Prop :=
   | term_var : forall x,
@@ -236,13 +244,19 @@ Inductive term : pterm -> Prop :=
       (forall x, x \notin L -> term (t1 ^ x)) ->
       term (pterm_abs t1).
 
-(** Look that a term is a set of suitables mixed lambda calculus symbols that don't contains
-any index inside.*)
+(** Um termo é válido na notação de nomes locais, quando este termo é um termo fechado. 
+Para ser um termo fechado, seguimos uma definição recursiva, onde toda variável livre, e portanto
+nomeada é fechada, toda aplicação é fechada, se seus dois termos internos são fechados, e toda
+abstração é fechada, se todos os termos que fazem parte da mesma também são fechados. Veja que esta é
+exatamente a definição que temos logo acima.*)
 
-(** we can define too a body, which is a given pre-term that for receiving a replacement
-becomes a term.*)
+(** Dessa forma também é interessante definir o conceito de corpo, como sendo todo pré-termo
+que após uma abertura no index 0, por uma variável nomeada livre x, torna-se um termo fechado.
+A definição está logo abaixo:*)
+
 Definition body t :=
   exists L, forall x, x \notin L -> term (t ^ x).
+
 (*
 Definition lterm t := term t \/ 
 
@@ -252,8 +266,13 @@ Inductive lterm : pterm -> Prop :=
   | lterm_labs : forall L t1,
       (forall x, x \notin L -> lterm (t1 ^ x)) ->
       lterm (pterm_labs t1). *)
-(** The lterm is a term, but with a marked redex, this is to have knowledge about
-the redex after any beta reduction. See the definition below:*)
+
+(** Para realizar a prova da confluência é necessária a definição de um termo marcado. Um
+termo marcado contém exatamente as mesmas propriedades de um termo, exceto que, pode possuir
+abstrações marcadas. Abstrações marcadas são aquelas que estão postas em uma aplicação válida,
+resultando em uma B-redução. Abstrações que não fazem parte de uma aplicação, não podem ser 
+abstrações marcadas. Podemos ver essa definição em termos recursivos logo abaixo:*)
+
 Inductive lterm : pterm -> Prop :=
   | lterm_var : forall x,
       lterm (pterm_fvar x)
@@ -268,6 +287,9 @@ Inductive lterm : pterm -> Prop :=
       (forall x, x \notin L -> lterm (t1 ^ x)) ->
       lterm t2 ->
       lterm (pterm_app (pterm_labs t1) t2).
+
+(** Assim, também é possível definir o corpo marcado, como sendo o pré-termo que após uma abertura
+recursiva do index 0 com uma variável nomeada livre qualquer x, torna-se um termo marcado:*)
 
 Definition lbody t :=
   exists L, forall x, x \notin L -> lterm (t ^ x).
@@ -287,6 +309,8 @@ Proof.
     + admit.
     + assumption.
 Admitted. *)
+
+(* begin hide *)
 
 Fixpoint pterm_size (t : pterm) : nat :=
  match t with
@@ -1870,3 +1894,6 @@ Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -
     }
     clear H H5.
     Admitted.
+
+
+(* end hide *)
