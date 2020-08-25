@@ -14,11 +14,10 @@ para representar variáveis ligadas, e variáveis nomeadas para representar vari
 forma podemos ter um conjunto de símbolos nesta notação que não sejam válidos semanticamente. 
 Vamos exemplificar: 
 
-
-Data a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
+ Dada a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
 que apresentamos. O index 0 neste caso indica que existem 0 passos para em uma aplicação
 substituir a variável ligada que o mesmo representa, estando esse index portanto ligado
-diretamente à abstração apresentada, e sendo dessa maneira válido semanticamento. Porém,
+diretamente à abstração apresentada, e sendo dessa maneira válido semanticamente. Porém,
 sintaticamente o index pode ser um valor iteiro k qualquer. Assim, por exemplo, ao 
 fazermos $\lambda.1$, estamos construindo semanticamente uma relação que não possui 
 significado válido. Queremos representar variáveis ligadas por meio de index's e neste caso o 
@@ -47,410 +46,1593 @@ Um pré-termo é um termo do cálculo lambda que possui em si indexs de de Bruij
 substituídos. (esta definição está correta?)
 
 
-Definição alternativa:
-
-
-Um pré-termo é um conjunto de símbolos do cálculo lambda que operam conjuntamente e ainda
-não foram verificados como totalmente fechados.\begin{coqdoccode}
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-A definição da operação ``variable opening'', ou seja, abertura de variáveis é dada abaixo:\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Fixpoint} \coqdocvar{open\_rec} (\coqdocvar{k} : \coqdocvar{nat}) (\coqdocvar{u} : \coqdocvar{pterm}) (\coqdocvar{t} : \coqdocvar{pterm}) : \coqdocvar{pterm} :=\coqdoceol
-\coqdocindent{1.00em}
-\coqdockw{match} \coqdocvar{t} \coqdockw{with}\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{pterm\_bvar} \coqdocvar{i}    \ensuremath{\Rightarrow} \coqdockw{if} \coqdocvar{k} === \coqdocvar{i} \coqdockw{then} \coqdocvar{u} \coqdockw{else} (\coqdocvar{pterm\_bvar} \coqdocvar{i})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{pterm\_fvar} \coqdocvar{x}    \ensuremath{\Rightarrow} \coqdocvar{pterm\_fvar} \coqdocvar{x}\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2} \ensuremath{\Rightarrow} \coqdocvar{pterm\_app} (\coqdocvar{open\_rec} \coqdocvar{k} \coqdocvar{u} \coqdocvar{t1}) (\coqdocvar{open\_rec} \coqdocvar{k} \coqdocvar{u} \coqdocvar{t2})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{pterm\_abs} \coqdocvar{t1}    \ensuremath{\Rightarrow} \coqdocvar{pterm\_abs} (\coqdocvar{open\_rec} (\coqdocvar{S} \coqdocvar{k}) \coqdocvar{u} \coqdocvar{t1})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{pterm\_labs} \coqdocvar{t1}    \ensuremath{\Rightarrow} \coqdocvar{pterm\_labs} (\coqdocvar{open\_rec} (\coqdocvar{S} \coqdocvar{k}) \coqdocvar{u} \coqdocvar{t1})\coqdoceol
-\coqdocindent{1.00em}
-\coqdockw{end}.\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-Esta operação é responsável por substituis todos os índices ``k'', por uma variável com
-nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, assim, ao aplicar
-a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.
-
- Com isso, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
-como ``open'', onde u é o nome de uma variável qualquer e t é um pré-termo ,logo abaixo:\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{open} \coqdocvar{t} \coqdocvar{u} := \coqdocvar{open\_rec} 0 \coqdocvar{u} \coqdocvar{t}.\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-Esta definição será extremamente útil nas provas mais abaixo, devido à maior facilidade com relação
-à trabalhar com qualquer index k.
-
- De qualquer forma, a operação como explicada mais acima, onde k é o index de De Bruijin,
-u o nome de uma variável qualquer e t o pré-termo que será aberto recursivamente no index k é 
-definida como se segue:\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Notation} "\{ k \~{}> u \} t" := (\coqdocvar{open\_rec} \coqdocvar{k} \coqdocvar{u} \coqdocvar{t}) (\coqdoctac{at} \coqdockw{level} 67).\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-Notação para representar a abertura de um termo, substituindo as variáveis ligadas
-por qualquer tipo de pré-termo.\begin{coqdoccode}
-\coqdocnoindent
-\coqdockw{Notation} "t \^{}\^{} u" := (\coqdocvar{open} \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 67).\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-Notação para representar abertura de um pré-termo utilizando uma variável livre
-x:\begin{coqdoccode}
-\coqdocnoindent
-\coqdockw{Notation} "t \^{} x" := (\coqdocvar{open} \coqdocvar{t} (\coqdocvar{pterm\_fvar} \coqdocvar{x})).\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-A definição de termo é dada logo abaixo:\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{term} : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{term\_var} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x},\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{term} (\coqdocvar{pterm\_fvar} \coqdocvar{x})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{term\_app} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2},\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{term} \coqdocvar{t1} \ensuremath{\rightarrow} \coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{term} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{term} (\coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{term\_abs} : \coqdockw{\ensuremath{\forall}} \coqdocvar{L} \coqdocvar{t1},\coqdoceol
-\coqdocindent{3.00em}
-(\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{t1} \^{} \coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{term} (\coqdocvar{pterm\_abs} \coqdocvar{t1}).\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-Um termo é válido na notação de nomes locais, quando este termo é um termo fechado. 
-Para ser um termo fechado, seguimos uma definição recursiva, onde toda variável livre, e portanto
-nomeada é fechada, toda aplicação é fechada, se seus dois termos internos são fechados, e toda
-abstração é fechada, se todos os termos que fazem parte da mesma também são fechados. Veja que esta é
-exatamente a definição que temos logo acima. Podemos deixar o entendimento mais fácil com a seguinte
-definição: Um termo é um pré-termo sem nenhuma variável ligada inválida, ou seja, nenhum index não ligado
-à uma abstração de alguma maneira.
-
- Dessa forma também é interessante definir o conceito de corpo, como sendo todo pré-termo
-que após uma abertura no index 0, por uma variável nomeada livre x, torna-se um termo fechado.
-A definição está logo abaixo:\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{body} \coqdocvar{t} :=\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{\ensuremath{\exists}} \coqdocvar{L}, \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{t} \^{} \coqdocvar{x}).\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-Perceba que a definição de body foi utilizada na definição recursiva de termo, para
-representar as abtrações válidas semanticamente, segundo os conceitos aqui já apresentados.\begin{coqdoccode}
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-Para realizar a prova da confluência é necessária a definição de um termo marcado. Um
-termo marcado contém exatamente as mesmas propriedades de um termo, exceto que, pode possuir
-abstrações marcadas. Abstrações marcadas são aquelas que estão postas em uma aplicação válida,
-aonde pode ser aplicada uma B-redução. Abstrações que não fazem parte de uma aplicação, não podem ser 
-abstrações marcadas. Podemos ver essa definição em termos recursivos logo abaixo:\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{lterm} : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{lterm\_var} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x},\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{lterm} (\coqdocvar{pterm\_fvar} \coqdocvar{x})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{lterm\_app} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2},\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{lterm} \coqdocvar{t1} \ensuremath{\rightarrow} \coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{lterm} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{lterm} (\coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{lterm\_abs} : \coqdockw{\ensuremath{\forall}} \coqdocvar{L} \coqdocvar{t1},\coqdoceol
-\coqdocindent{3.00em}
-(\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lterm} (\coqdocvar{t1} \^{} \coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{lterm} (\coqdocvar{pterm\_abs} \coqdocvar{t1})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{lterm\_labs} : \coqdockw{\ensuremath{\forall}} \coqdocvar{L} \coqdocvar{t1} \coqdocvar{t2},\coqdoceol
-\coqdocindent{3.00em}
-(\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lterm} (\coqdocvar{t1} \^{} \coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{lterm} \coqdocvar{t2} \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{lterm} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t1}) \coqdocvar{t2}).\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-Assim, também é possível definir o corpo marcado, como sendo o pré-termo que possui dentro de 
-si uma abstração marcada, aonde após uma abertura recursiva do index 0 com uma variável nomeada 
-livre qualquer x, torna-se um termo marcado:\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Definition} \coqdocvar{lbody} \coqdocvar{t} :=\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{\ensuremath{\exists}} \coqdocvar{L}, \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lterm} (\coqdocvar{t} \^{} \coqdocvar{x}).\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Hint Constructors} \coqdocvar{lterm} \coqdocvar{term}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-*Definições características 
-
- Para ajudar nas diversas abordagens de prova que serão utilizadas, podemos definir
-algumas propriedades. Em provas indutivas no tamanho da estrutura sintática, precisamos 
-definir o conceito de tamanho do termo. Esta definição é dada abaixo, dando o valor de 1
-para variáveis livres (pterm\_fvar x) e variáveis ligadas (pterm\_bvar i) e contando recursivamente
-a partir das estruturas mais complexas do termo, tal como a aplicação, a abstração e a abstração
-marcada: \begin{coqdoccode}
-\coqdocnoindent
-\coqdockw{Fixpoint} \coqdocvar{pterm\_size} (\coqdocvar{t} : \coqdocvar{pterm}) : \coqdocvar{nat} :=\coqdoceol
-\coqdocindent{0.50em}
-\coqdockw{match} \coqdocvar{t} \coqdockw{with}\coqdoceol
-\coqdocindent{0.50em}
-\ensuremath{|} \coqdocvar{pterm\_bvar} \coqdocvar{i}    \ensuremath{\Rightarrow} 1\coqdoceol
-\coqdocindent{0.50em}
-\ensuremath{|} \coqdocvar{pterm\_fvar} \coqdocvar{x}    \ensuremath{\Rightarrow} 1\coqdoceol
-\coqdocindent{0.50em}
-\ensuremath{|} \coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2} \ensuremath{\Rightarrow} (\coqdocvar{pterm\_size} \coqdocvar{t1}) + (\coqdocvar{pterm\_size} \coqdocvar{t2})\coqdoceol
-\coqdocindent{0.50em}
-\ensuremath{|} \coqdocvar{pterm\_abs} \coqdocvar{t1}    \ensuremath{\Rightarrow} 1 + (\coqdocvar{pterm\_size} \coqdocvar{t1})\coqdoceol
-\coqdocindent{0.50em}
-\ensuremath{|} \coqdocvar{pterm\_labs} \coqdocvar{t1}   \ensuremath{\Rightarrow} 1 + (\coqdocvar{pterm\_size} \coqdocvar{t1})\coqdoceol
-\coqdocindent{0.50em}
-\coqdockw{end}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{pterm\_size\_gt\_0}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{pterm\_size} \coqdocvar{t} > 0.\coqdoceol
-\coqdocnoindent
-\coqdockw{Proof}.\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{intro} \coqdocvar{t}; \coqdoctac{induction} \coqdocvar{t}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{auto}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{auto}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{apply} \coqdocvar{Nat.add\_pos\_r}; \coqdoctac{assumption}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{auto}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{auto}.\coqdoceol
-\coqdocnoindent
-\coqdockw{Qed}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{pterm\_size\_open\_rec}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{n} \coqdocvar{x}, \coqdocvar{pterm\_size} \coqdocvar{t} = \coqdocvar{pterm\_size} (\coqdocvar{open\_rec} \coqdocvar{n} (\coqdocvar{pterm\_fvar} \coqdocvar{x}) \coqdocvar{t}).\coqdoceol
-\coqdocnoindent
-\coqdockw{Proof}.\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{intro} \coqdocvar{t}; \coqdoctac{induction} \coqdocvar{t}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{intros} \coqdocvar{n0} \coqdocvar{x}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{destruct}(\coqdocvar{n0} === \coqdocvar{n}); \coqdoctac{reflexivity}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{intros} \coqdocvar{n} \coqdocvar{x}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{reflexivity}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{intros} \coqdocvar{n} \coqdocvar{x}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{rewrite} \ensuremath{\leftarrow} \coqdocvar{IHt1}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{rewrite} \ensuremath{\leftarrow} \coqdocvar{IHt2}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{reflexivity}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{intros} \coqdocvar{n} \coqdocvar{x}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{rewrite} \ensuremath{\leftarrow} \coqdocvar{IHt}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{reflexivity}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{intros} \coqdocvar{n} \coqdocvar{x}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{simpl}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{rewrite} \ensuremath{\leftarrow} \coqdocvar{IHt}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{reflexivity}.\coqdoceol
-\coqdocnoindent
-\coqdockw{Qed}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-\section{Seção}
 
 
 
-\subsection{Subseção}
+
+Fixpoint fv (t : pterm) : vars :=
+  match t with
+  | pterm\_bvar i    => \{\}
+  | pterm\_fvar x    => \footnote{\url{x}}
+  | pterm\_app t1 t2 => (fv t1) \symbol{92}u (fv t2)
+  | pterm\_abs t1    => (fv t1)
+  | pterm\_labs t1    => (fv t1)
+  end.
+
+
+Fixpoint bv (t : pterm) : vars :=
+  match t with
+  | pterm\_bvar i    => \footnote{\url{i}}
+  | pterm\_fvar x    => \{\}
+  | pterm\_app t1 t2 => (bv t1) \symbol{92}u (bv t2)
+  | pterm\_abs t1    => (bv t1)
+  | pterm\_labs t1    => (bv t1)
+  end.
+
+
+Ltac gather\_vars\_with F :=
+  let rec gather V :=
+    match goal with
+    | H: ?S |- \_ =>
+      let FH := constr:(F H) in
+      match V with
+      | \{\} => gather FH
+      | context \coqdocvar{FH} => fail 1
+      | \_ => gather (FH \symbol{92}u V)
+      end
+    | \_ => V
+    end in
+  let L := gather \{\} in eval simpl in L.
+
+
+Ltac gather\_vars :=
+  let A := gather\_vars\_with (fun x : vars => x) in
+  let B := gather\_vars\_with (fun x : var => \footnote{\url{ x }}) in
+  let D := gather\_vars\_with (fun x : pterm => fv x) in
+  constr:(A \symbol{92}u B \symbol{92}u D).
+
+
+Ltac beautify\_fset V :=
+  let rec go Acc E :=
+     match E with
+     | ?E1 \symbol{92}u ?E2 => let Acc1 := go Acc E1 in
+                     go Acc1 E2
+     | \{\}  => Acc
+     | ?E1 => match Acc with
+              | \{\} => E1
+              | \_ => constr:(Acc \symbol{92}u E1)
+              end
+     end
+  in go \{\} V.
+
+
+Require Import List Omega.
+Open Scope list\_scope.
+
+
+Lemma max\_lt\_l :
+  forall (x y z : nat), x <= y -> x <= max y z.
+Proof.
+  induction x; auto with arith.
+  induction y; induction z; simpl; auto with arith.
+Qed.
+
+
+Lemma finite\_nat\_list\_max : forall (l : list nat),
+  \{ n : nat | forall x, In x l -> x <= n \}.
+Proof.
+  induction l as  \ensuremath{|} \coqdocvar{l} \coqdocvar{ls} \coqdocvar{IHl} .
+
+\begin{itemize}
+\item  exists 0; intros x H; inversion H.
+
+\item  inversion IHl as \coqdocvar{x} \coqdocvar{H}; clear IHl.
+    exists (max x l).
+    intros x' Hin.
+    inversion Hin; subst.
+    + auto with arith.
+    + assert (x' <= x); auto using max\_lt\_l.
+
+\end{itemize}
+Qed.      
+
+
+Lemma finite\_nat\_list\_max' : forall (l : list nat),
+  \{ n : nat | \~{} In n l \}.
+Proof.
+  intros l. case (finite\_nat\_list\_max l); intros x H.
+  exists (S x). intros J. assert (K := H \_ J); omega.
+Qed.
+
+
+Definition var\_gen (L : vars) : var :=
+  proj1\_sig (finite\_nat\_list\_max' (elements L)).
+
+
+Lemma var\_gen\_spec : forall E, (var\_gen E) \symbol{92}notin E.
+Proof.
+  unfold var\_gen. intros E.
+  destruct (finite\_nat\_list\_max' (elements E)) as \coqdocvar{n} \coqdocvar{pf}.
+  simpl. intros a. 
+  destruct pf.
+  apply elements\_spec1 in a.
+  rewrite InA\_alt in a.
+  destruct a as \coqdocvar{y} [\coqdocvar{H1} \coqdocvar{H2}].
+  subst; assumption.
+Qed.
+
+
+Lemma var\_fresh : forall (L : vars), \{ x : var | x \symbol{92}notin L \}.
+Proof.
+  intros L. exists (var\_gen L). apply var\_gen\_spec.
+Qed.
+
+
+Ltac pick\_fresh\_gen L Y :=
+  let Fr := fresh ``Fr'' in
+  let L := beautify\_fset L in
+  (destruct (var\_fresh L) as \coqdocvar{Y} \coqdocvar{Fr}).
+
+
+Ltac pick\_fresh Y :=
+  let L := gather\_vars in (pick\_fresh\_gen L Y).
+
+
+Lemma notin\_union : forall x E F,
+  x \symbol{92}notin (E \symbol{92}u F) <-> (x \symbol{92}notin E) /\symbol{92} (x \symbol{92}notin F).
+Proof.
+assert (not\_or: forall (A B: Prop), \~{}(A \symbol{92}/ B) <-> \~{} A /\symbol{92} \~{} B).
+\{
+  unfold not.
+  split.
+
+\begin{itemize}
+\item  intro H.
+    split.
+    + intro H0.
+      destruct H.
+      left. 
+      assumption.
+    + intro H0.
+      destruct H.
+      right.
+      assumption.
+
+\item  intros H H0.
+    destruct H.
+    destruct H0; contradiction.
+
+\end{itemize}
+\}
+intros x E F.
+apply iff\_stepl with (\~{}((x \symbol{92}in E) \symbol{92}/ (x \symbol{92}in F))).
+
+\begin{itemize}
+\item  apply not\_or.
+
+\item  split; unfold not; intros; destruct H; apply union\_spec in H0; assumption.
+
+\end{itemize}
+Qed.
 
 
 
- texto do relatório \begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Theorem} \coqdocvar{strip\_lemma}: \coqdockw{\ensuremath{\forall}}  \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t} -->\coqdocvar{B} \coqdocvar{t1} \ensuremath{\rightarrow} \coqdocvar{t} -->>\coqdocvar{B} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdoctac{\ensuremath{\exists}} \coqdocvar{t3}, \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t3} \ensuremath{\land} \coqdocvar{t2} -->>\coqdocvar{B} \coqdocvar{t3}.\coqdoceol
-\coqdocindent{1.00em}
-\coqdockw{Proof}.\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{intros} \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2} \coqdocvar{H1} \coqdocvar{H2}.\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{induction} \coqdocvar{H1}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{inversion} \coqdocvar{H}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{apply} \coqdocvar{refltrans\_equiv} \coqdoctac{in} \coqdocvar{H2}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdocvar{remember} (\coqdocvar{t1} \^{}\^{} \coqdocvar{u}) \coqdockw{as} \coqdocvar{b}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{generalize}  \coqdoctac{dependent} \coqdocvar{b}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{induction} \coqdocvar{H2}.\coqdoceol
-\coqdocindent{2.00em}
-+ \coqdoctac{\ensuremath{\exists}} (\coqdocvar{t1} \^{}\^{} \coqdocvar{u}); \coqdoctac{split}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdoctac{apply} \coqdocvar{reflex}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdoctac{apply} \coqdocvar{atleast1}.\coqdoceol
-\coqdocindent{4.00em}
-\coqdoctac{apply} \coqdocvar{redex}.\coqdoceol
-\coqdocindent{4.00em}
-\coqdoctac{assumption}.\coqdoceol
-\coqdocindent{2.00em}
-+ \coqdoctac{inversion} \coqdocvar{H}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{rewrite} \ensuremath{\leftarrow} \coqdocvar{H3} \coqdoctac{in} \coqdocvar{H}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{clear} \coqdocvar{H0} \coqdocvar{H1} \coqdocvar{H3}.\coqdoceol
-\coqdocemptyline
-\coqdocindent{3.00em}
-\coqdoctac{inversion} \coqdocvar{H2}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
-\coqdocindent{2.00em}
-+ \coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{apply} \coqdocvar{open\_rec\_inj} \coqdoctac{in} \coqdocvar{H3}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{destruct} \coqdocvar{H3} \coqdockw{as} [\coqdocvar{Heq1} \coqdocvar{Heq2}]; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{clear} \coqdocvar{H4} \coqdocvar{H6}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{induction} \coqdocvar{H2}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdocvar{Admitted}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\coqdocindent{2.00em}
-\coqdockw{Lemma} \coqdocvar{erase\_lbeta\_2313}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t1'} \coqdocvar{t2'}, \coqdocvar{erase}(\coqdocvar{t1'}) = \coqdocvar{t1} \ensuremath{\land} \coqdocvar{erase}(\coqdocvar{t2'}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t1'} -->>\coqdocvar{lB} \coqdocvar{t2'}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdockw{Proof}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{Admitted}.\coqdoceol
-\coqdocemptyline
-\coqdocindent{2.00em}
-\coqdoctac{assert} (\coqdocvar{H'}: \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t1}) \coqdocvar{u} -->>\coqdocvar{B} \coqdocvar{t2}).\coqdoceol
-\coqdocindent{2.00em}
-\{\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{apply} \coqdocvar{erase\_lbeta\_2313}.\coqdoceol
-\coqdocindent{2.00em}
-\}\coqdoceol
-\coqdocindent{2.50em}
-\coqdoctac{in} \coqdocvar{H2} \coqdockw{with} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t1}) \coqdocvar{u}) \coqdocvar{\_}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\coqdocindent{1.00em}
-\coqdoctac{assert} (\coqdocvar{H2'} := \coqdocvar{H2}).\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{assert} (\coqdockw{\ensuremath{\forall}} \coqdocvar{t'}, \coqdocvar{erase}(\coqdocvar{t'}) = \coqdocvar{t} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t2'}, \coqdocvar{erase}(\coqdocvar{t2'}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t'} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
-\coqdocindent{1.00em}
-\{\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{apply} \coqdocvar{erase\_lbeta}; \coqdoctac{assumption}.\coqdoceol
-\coqdocindent{1.00em}
-\}\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{inversion} \coqdocvar{H1}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{inversion} \coqdocvar{H0}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{assert} (\coqdocvar{erase} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u}) = \coqdocvar{pterm\_app} (\coqdocvar{pterm\_abs} \coqdocvar{t0}) \coqdocvar{u} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t2'}, \coqdocvar{erase} \coqdocvar{t2'} = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
-\coqdocindent{2.00em}
-\{\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{apply} \coqdocvar{H}.\coqdoceol
-\coqdocindent{2.00em}
-\}\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{clear} \coqdocvar{H}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{assert} (\coqdocvar{erase} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u}) = \coqdocvar{pterm\_app} (\coqdocvar{pterm\_abs} \coqdocvar{t0}) \coqdocvar{u}).\coqdoceol
-\coqdocindent{2.00em}
-\{\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{simpl}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{rewrite} \coqdocvar{body\_erase}.\coqdoceol
-\coqdocindent{3.00em}
-- \coqdoctac{rewrite} \coqdocvar{term\_erase}.\coqdoceol
-\coqdocindent{4.00em}
-+ \coqdoctac{reflexivity}.\coqdoceol
-\coqdocindent{4.00em}
-+ \coqdoctac{assumption}.\coqdoceol
-\coqdocindent{3.00em}
-- \coqdoctac{assumption}.\coqdoceol
-\coqdocindent{2.00em}
-\}\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{assert} (\coqdockw{\ensuremath{\forall}} \coqdocvar{t2'} : \coqdocvar{pterm}, \coqdocvar{erase} \coqdocvar{t2'} = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
-\coqdocindent{2.00em}
-\{\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{apply} \coqdocvar{H5}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{assumption}.\coqdoceol
-\coqdocindent{2.00em}
-\}\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{clear} \coqdocvar{H} \coqdocvar{H5}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdocvar{Admitted}.\coqdoceol
-\coqdocemptyline
+
+Fixpoint open\_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
+  match t with
+  | pterm\_bvar i    => if k === i then u else (pterm\_bvar i)
+  | pterm\_fvar x    => pterm\_fvar x
+  | pterm\_app t1 t2 => pterm\_app (open\_rec k u t1) (open\_rec k u t2)
+  | pterm\_abs t1    => pterm\_abs (open\_rec (S k) u t1)
+  | pterm\_labs t1    => pterm\_labs (open\_rec (S k) u t1)
+  end.
+
+
+
+
+
+
+Definition open t u := open\_rec 0 u t.
+
+
+
+
+
+
+Notation ``\{ k \~{}> u \} t'' := (open\_rec k u t) (at level 67).
+
+
+
+
+
+
+Notation ``t \^{}\^{} u'' := (open t u) (at level 67). 
+
+
+
+
+Notation ``t \^{} x'' := (open t (pterm\_fvar x)).   
+
+
+Fixpoint close\_rec  (k : nat) (x : var) (t : pterm) : pterm :=
+  match t with
+  | pterm\_bvar i    => pterm\_bvar i
+  | pterm\_fvar x'    => if x' == x then (pterm\_bvar k) else pterm\_fvar x'
+  | pterm\_app t1 t2 => pterm\_app (close\_rec k x t1) (close\_rec k x t2)
+  | pterm\_abs t1    => pterm\_abs (close\_rec (S k) x t1)
+  | pterm\_labs t1 => pterm\_labs (close\_rec (S k) x t1)
+  end.
+
+
+Definition close t x := close\_rec 0 x t.
+
+
+
+
+Inductive term : pterm -> Prop :=
+  | term\_var : forall x,
+      term (pterm\_fvar x)
+  | term\_app : forall t1 t2,
+      term t1 -> 
+      term t2 -> 
+      term (pterm\_app t1 t2)
+  | term\_abs : forall L t1,
+      (forall x, x \symbol{92}notin L -> term (t1 \^{} x)) ->
+      term (pterm\_abs t1).
+
+
+
+
+
+
+Definition body t :=
+  exists L, forall x, x \symbol{92}notin L -> term (t \^{} x).
+
+
+
+
+
+
+
+
+Inductive lterm : pterm -> Prop :=
+  | lterm\_var : forall x,
+      lterm (pterm\_fvar x)
+  | lterm\_app : forall t1 t2,
+      lterm t1 -> 
+      lterm t2 -> 
+      lterm (pterm\_app t1 t2)
+  | lterm\_abs : forall L t1,
+      (forall x, x \symbol{92}notin L -> lterm (t1 \^{} x)) ->
+      lterm (pterm\_abs t1)
+  | lterm\_labs : forall L t1 t2,
+      (forall x, x \symbol{92}notin L -> lterm (t1 \^{} x)) ->
+      lterm t2 ->
+      lterm (pterm\_app (pterm\_labs t1) t2).
+
+
+
+
+Definition lbody t :=
+  exists L, forall x, x \symbol{92}notin L -> lterm (t \^{} x).
+
+
+Hint Constructors lterm term.
+
+
+
+
+
+
+
+
+
+
+Fixpoint pterm\_size (t : pterm) : nat :=
+ match t with
+ | pterm\_bvar i    => 1
+ | pterm\_fvar x    => 1
+ | pterm\_app t1 t2 => (pterm\_size t1) + (pterm\_size t2)
+ | pterm\_abs t1    => 1 + (pterm\_size t1)
+ | pterm\_labs t1   => 1 + (pterm\_size t1)
+ end.
+
+
+Lemma pterm\_size\_gt\_0: forall t, pterm\_size t > 0.
+Proof.
+  intro t; induction t.
+
+\begin{itemize}
+\item  simpl.
+    auto.
+
+\item  simpl.
+    auto.
+
+\item  simpl.
+    apply Nat.add\_pos\_r; assumption.
+
+\item  simpl.
+    auto.
+
+\item  simpl.
+    auto.
+
+\end{itemize}
+Qed.
+
+
+Lemma pterm\_size\_open\_rec: forall t n x, pterm\_size t = pterm\_size (open\_rec n (pterm\_fvar x) t).
+Proof.
+  intro t; induction t.
+
+\begin{itemize}
+\item  intros n0 x.
+    simpl.
+    destruct(n0 === n); reflexivity.
+
+\item  intros n x.
+    reflexivity.
+
+\item  intros n x.
+    simpl.
+    rewrite <- IHt1.
+    rewrite <- IHt2.
+    reflexivity.
+
+\item  intros n x.
+    simpl.
+    rewrite <- IHt.
+    reflexivity.
+
+\item  intros n x.
+    simpl.
+    rewrite <- IHt.
+    reflexivity.
+
+\end{itemize}
+Qed.
+
+
+
+
+Lemma strong\_induction :
+ forall (P: nat -> Prop),
+   (forall n, (forall m, m < n -> P m) -> P n) ->
+   (forall n, P n).
+Proof.
+  intros P H.
+  cut (forall n m, m < n -> P m).
+
+\begin{itemize}
+\item  intros H' n.
+    apply H.
+    apply H'.
+
+\item  induction n.
+    + intros m H'.
+      inversion H'.
+    + intros m Hlt.
+      apply H.
+      intros m' Htl.
+      apply IHn.
+      apply lt\_n\_Sm\_le in Hlt.
+      apply Nat.lt\_le\_trans with m; assumption.
+
+\end{itemize}
+Qed.
+
+
+Lemma pterm\_size\_induction :
+ forall P : pterm -> Prop,
+ (forall n, P (pterm\_bvar n)) ->
+ (forall x, P (pterm\_fvar x)) ->
+ (forall t1 t2, P t1 -> P t2 -> P (pterm\_app t1 t2)) ->
+ (forall t1,
+    (forall t2 x, x \symbol{92}notin fv t2 -> pterm\_size t2 = pterm\_size t1 ->
+    P (t2 \^{} x)) -> P (pterm\_abs t1)) ->
+ (forall t1,
+    (forall t2 x, x \symbol{92}notin fv t2 -> pterm\_size t2 = pterm\_size t1 ->
+    P (t2 \^{} x)) -> P (pterm\_labs t1)) ->
+ (forall t, P t).
+Proof.
+  intros P h1 h2 h3 h4 h5 t.
+  remember (pterm\_size t) as n.
+  generalize dependent t.
+  induction n using strong\_induction.
+  intro t; destruct t.
+
+\begin{itemize}
+\item  intro Hsize.
+    apply h1.
+
+\item  intro Hsize.
+    apply h2.
+
+\item  simpl.
+    intro Hsize.
+    apply h3.
+    + apply H with (pterm\_size t1).
+      * rewrite Hsize.
+        assert (Ht2: pterm\_size t2 > 0).
+        \{
+          apply pterm\_size\_gt\_0.
+        \}
+        rewrite Nat.add\_comm.
+        apply Nat.lt\_add\_pos\_l.
+        assumption.
+      * reflexivity.
+    + apply H with (pterm\_size t2).
+      * rewrite Hsize.
+        assert (Ht2: pterm\_size t1 > 0).
+        \{
+          apply pterm\_size\_gt\_0.
+        \}
+        apply Nat.lt\_add\_pos\_l.
+        apply Ht2.
+      * reflexivity.
+
+\item  simpl.
+    intro Hsize.
+    apply h4.
+    intros t2 x Hfv Hequals.
+    apply H with (pterm\_size t0).
+    rewrite Hsize.
+    apply Nat.lt\_succ\_diag\_r.
+    assert (Hopen: pterm\_size t2 = pterm\_size (open\_rec 0 (pterm\_fvar x) t2)).
+    \{
+      apply pterm\_size\_open\_rec.
+    \}
+    unfold open.
+    rewrite <- Hopen.
+    symmetry; assumption.
+
+\item  simpl.
+    intro Hsize.
+    apply h5.
+    intros t2 x Hfv Hequals.
+    apply H with (pterm\_size t0).
+    rewrite Hsize.
+    apply Nat.lt\_succ\_diag\_r.
+    assert (Hopen: pterm\_size t2 = pterm\_size (open\_rec 0 (pterm\_fvar x) t2)).
+    \{
+      apply pterm\_size\_open\_rec.
+    \}
+    unfold open.
+    rewrite <- Hopen.
+    symmetry; assumption.
+
+\end{itemize}
+Qed.
+
+
+Fixpoint lc\_at (k:nat) (t:pterm) : Prop :=
+  match t with
+  | pterm\_bvar i    => i < k
+  | pterm\_fvar x    => True
+  | pterm\_app t1 t2 => lc\_at k t1 /\symbol{92} lc\_at k t2
+  | pterm\_abs t1    => lc\_at (S k) t1
+  | pterm\_labs t1    => lc\_at (S k) t1
+  end.
+
+
+Lemma lc\_at\_open\_rec\_rename: forall t x y m n, lc\_at m (open\_rec n (pterm\_fvar x) t) -> lc\_at m (open\_rec n (pterm\_fvar y) t).
+Proof.
+  intro t; induction t.
+
+\begin{itemize}
+\item  intros x y m n0.
+    simpl. destruct (n0 === n); subst.
+    + intro H.
+      auto.
+    + intro H; assumption.
+
+\item  intros x y m n H.
+    auto.
+
+\item  intros x y m n. 
+    simpl.
+    intro H.
+    destruct H as \coqdocvar{H1} \coqdocvar{H2}.
+    split.
+    + apply IHt1 with x; assumption.
+    + apply IHt2 with x; assumption.
+
+\item  intros x y m n.
+    simpl.
+    intro H.
+    apply IHt with x; assumption.
+
+\item  intros x y m n.
+    simpl.
+    intro H.
+    apply IHt with x; assumption.
+
+\end{itemize}
+Qed.
+
+
+Lemma lc\_at\_weaken: forall t n m, n <= m -> lc\_at n t -> lc\_at m t.
+Proof.
+  intro t; induction t.
+
+\begin{itemize}
+\item  intros n' m Hleq.
+    simpl.
+    intro Hlt.
+    apply Nat.lt\_le\_trans with n'; assumption.
+
+\item  intros n m Hleq.
+    auto.
+
+\item  intros n m Hleq.
+    simpl.
+    intro H.
+    destruct H as \coqdocvar{H1} \coqdocvar{H2}.
+    split.
+    + apply IHt1 with n; assumption.
+    + apply IHt2 with n; assumption.
+
+\item  intros n m Hleq.
+    simpl.
+    apply IHt.
+    apply le\_n\_S; assumption.
+
+\item  intros n m Hleq.
+    simpl.
+    intro H.
+    apply IHt with (S n).
+    + apply le\_n\_S; assumption.
+    + assumption.
+
+\end{itemize}
+Qed.
+
+
+Lemma lc\_at\_open: forall t m x, lc\_at m (\{m \~{}> pterm\_fvar x\} t) <-> lc\_at (S m) t.
+Proof.
+  intros t m x; split.
+
+\begin{itemize}
+\item  generalize dependent x.
+    generalize dependent m.
+    induction t.
+    + intros m x.
+      simpl.
+      destruct (m === n).
+      * subst.
+        intro H.
+        apply Nat.lt\_succ\_diag\_r.
+      * simpl.
+        intro H.
+        apply Nat.lt\_lt\_succ\_r; assumption.
+    + intros m x.
+      auto.
+    + intros m x.
+      simpl.
+      intro H.
+      destruct H as \coqdocvar{H1} \coqdocvar{H2}.
+      split.
+      * apply IHt1 with x; assumption.
+      * apply IHt2 with x; assumption.
+    + intros m x.
+      simpl.
+      apply IHt.
+    + intros m x.
+      simpl.
+      intro H.
+      apply IHt with x; assumption.
+
+\item  generalize dependent x.
+    generalize dependent m.
+    induction t.
+    + intros m x Hat.
+      simpl.
+      destruct(m ===n).
+      * simpl.
+        auto.
+      * unfold lc\_at in *.
+        apply lt\_n\_Sm\_le in Hat.
+        apply le\_lt\_or\_eq in Hat.
+        destruct Hat.
+        ** assumption.
+        ** symmetry in H.
+          contradiction.
+    + intros m x H.
+      simpl in *.
+      auto.
+    + intros m x H.
+      simpl in H.
+      destruct H as \coqdocvar{H1} \coqdocvar{H2}.
+      simpl; split.
+      * apply IHt1; assumption.
+      * apply IHt2; assumption.
+    + intros m x H.
+      simpl in H.
+      simpl.
+      apply IHt; assumption.
+    + intros m x H.
+      simpl in H.
+      simpl.
+      apply IHt; assumption.
+
+\end{itemize}
+Qed.
+
+
+Lemma term\_to\_lc\_at : forall t, term t -> lc\_at 0 t.
+Proof.
+  intros t Hterm.
+  induction Hterm.
+
+\begin{itemize}
+\item  simpl.
+    auto.
+
+\item  simpl.
+    split; assumption.
+
+\item  pick\_fresh x.
+    apply notin\_union in Fr.
+    destruct Fr as \coqdocvar{Fr} \coqdocvar{H1}.
+    apply H0 in Fr.
+    unfold open in Fr.
+    apply lc\_at\_open in Fr.
+    assumption.
+
+\end{itemize}
+Qed.
+
+
+
+
+Lemma lterm\_to\_lc\_at : forall t, lterm t -> lc\_at 0 t.
+Proof.
+  intros t Hterm.
+  induction Hterm.
+
+\begin{itemize}
+\item  simpl.
+    auto.
+
+\item  simpl; split; assumption.
+
+\item  simpl.
+    pick\_fresh x.
+    apply notin\_union in Fr.
+    destruct Fr as \coqdocvar{Fr} \coqdocvar{H1}.
+    apply H0 in Fr.
+    apply lc\_at\_open in Fr.
+    assumption.
+
+\item  simpl; split.
+    + pick\_fresh x.
+    apply notin\_union in Fr.
+    destruct Fr as \coqdocvar{Fr} \coqdocvar{H2}.
+    apply notin\_union in Fr.
+    destruct Fr as \coqdocvar{Fr} \coqdocvar{H1}.
+    apply H0 in Fr.
+    apply lc\_at\_open in Fr.
+    assumption.
+    + assumption.
+
+\end{itemize}
+Qed.
+
+
+
+
+Fixpoint has\_free\_index (k:nat) (t:pterm) : Prop :=
+  match t with
+    | pterm\_bvar n => if (k === n) then True else False
+    | pterm\_fvar x => False
+    | pterm\_app t1 t2 => (has\_free\_index k t1) \symbol{92}/ (has\_free\_index k t2)
+    | pterm\_abs t1 => has\_free\_index (S k) t1
+    | pterm\_labs t1 => has\_free\_index (S k) t1
+  end.
+
+
+Lemma deMorgan: forall p q, (\~{} p) /\symbol{92} (\~{} q) -> \~{}(p \symbol{92}/ q).
+Proof.
+  intros p q H1.
+  intros or.
+  destruct(or).
+
+\begin{itemize}
+\item  destruct(H1).
+    contradiction.
+
+\item  destruct(H1).
+    contradiction.
+
+\end{itemize}
+Qed.
+
+
+Lemma term\_rename: forall t x y, term (t \^{} x) -> term (t \^{} y).
+Proof.
+  intros t x y Hterm.
+  apply term\_to\_lc\_at in Hterm.
+  Admitted.
+
+
+
+
+Lemma ind\_max: forall t u n, term (\{n \~{}> u\}t) -> \~{} (has\_free\_index (S n) t).
+Proof.
+Admitted.
+
+
+Lemma body\_not\_S: forall t n, body t -> not (has\_free\_index (S n) t).
+Proof.
+  intros t0 n H1; induction t0.
+
+\begin{itemize}
+\item  unfold body in H1.
+    unfold has\_free\_index.
+    destruct(S n === n0); subst.
+    + destruct H1 as \coqdocvar{L}.
+      pick\_fresh x.
+      apply notin\_union in Fr.
+      destruct Fr as \coqdocvar{Fr} \coqdocvar{Hn}.
+      apply H in Fr.
+      unfold open in Fr.
+      simpl in Fr.
+      inversion Fr.
+    + intros Htrue.
+      assumption.
+
+\item  unfold body in H1.
+    unfold has\_free\_index.
+    intros HFalse.
+    assumption.
+
+\item  simpl.
+    unfold body in H1.
+    destruct H1.
+    pick\_fresh y.
+     apply notin\_union in Fr.
+     destruct Fr as \coqdocvar{Fr} \coqdocvar{H2}.
+     apply notin\_union in Fr.
+     destruct Fr as \coqdocvar{Fr} \coqdocvar{H1}.
+     apply notin\_union in Fr.
+     destruct Fr as \coqdocvar{Fr} \coqdocvar{Hn}.
+     apply H in Fr.
+     change (pterm\_app t0\_1 t0\_2 \^{} y) with (pterm\_app (t0\_1 \^{} y) (t0\_2 \^{} y)) in Fr.
+     inversion Fr; subst.
+     apply deMorgan.
+     split.
+    + apply IHt0\_1.
+      unfold body.
+      exists (fv t0\_1).
+      intros x0 Hfv.
+      apply term\_rename with y.
+      assumption.
+    + admit.
+
+\item  intro Hfree.
+    clear IHt0.
+    unfold body in H1.
+    destruct H1 as \coqdocvar{L}.
+    pick\_fresh x.
+    apply notin\_union in Fr.
+    destruct Fr as \coqdocvar{Fr} \coqdocvar{H0}.
+    apply notin\_union in Fr.
+    destruct Fr as \coqdocvar{Fr} \coqdocvar{Hn}.
+    apply H in Fr.
+    unfold open in Fr.
+    simpl in Fr.
+    inversion Fr; subst.
+    pick\_fresh z.
+    apply notin\_union in Fr0.
+    destruct Fr0 as \coqdocvar{Fr0} \coqdocvar{Ht0}.
+    apply notin\_union in Fr0.
+    destruct Fr0 as \coqdocvar{Fr0} \coqdocvar{Hx}.
+    apply notin\_union in Fr0.
+    destruct Fr0 as \coqdocvar{Fr0} \coqdocvar{Hn'}.
+    apply notin\_union in Fr0.
+    destruct Fr0 as \coqdocvar{Fr0} \coqdocvar{HL0}.
+    apply H2 in HL0.
+    unfold open in HL0.
+    simpl in Hfree.
+    clear L H Fr Hn H0 L0 H2 Fr0 Hn' Hx Ht0.
+    replace (\{0 \~{}> pterm\_fvar z\} (\{1 \~{}> pterm\_fvar x\} t0)) with (\{1 \~{}> pterm\_fvar x\} (\{0 \~{}> pterm\_fvar z\} t0)) in HL0.
+    + apply ind\_max in HL0.
+
+\end{itemize}
+Admitted.
+
+
+Lemma open\_rec\_close\_rec\_term: forall t u k, \~{}(has\_free\_index k t) -> open\_rec k u t = t.
+Proof.
+  intro t; induction t.
+
+\begin{itemize}
+\item  intros u k H1.
+    simpl.
+    destruct(k === n).
+    + rewrite <- e.
+      admit.
+    + reflexivity.
+
+\item  intros u k H1.
+    simpl.
+    reflexivity.
+
+\item  intros u k H1.
+
+\end{itemize}
+Admitted.
+
+
+Lemma subst\_body: forall t u n, body t -> \{S n \~{}> u\} t = t.
+Proof.
+  intros t u n Hbody.
+  apply open\_rec\_close\_rec\_term.
+  apply body\_not\_S; assumption.
+Qed.  
+  
+
+Lemma subst\_term: forall t u n, term t -> \{n \~{}> u\} t = t.
+Proof.
+  intros t u n H.
+  generalize dependent n.
+  generalize dependent u.
+  induction H.
+
+\begin{itemize}
+\item  intros u n.
+    simpl.
+    reflexivity.
+
+\item  intros u n.
+    simpl.
+    rewrite IHterm1.
+    rewrite IHterm2.
+    reflexivity.
+
+\item  intros u n.
+    simpl.
+    rewrite subst\_body.
+    + reflexivity.
+    + unfold body.
+      exists L.
+      assumption.
+
+\end{itemize}
+Qed.
+
+
+Lemma subst\_lterm: forall t u n, lterm t -> \{n \~{}> u\} t = t.
+Proof.
+  intros t u n H.
+  generalize dependent n.
+  generalize dependent u.
+  induction H.
+
+\begin{itemize}
+\item  admit.
+
+\item  admit.
+
+\item  admit.
+
+\item  intros u n.
+    simpl.
+    f\_equal.
+
+\end{itemize}
+Admitted.
+
+
+Lemma abs\_body: forall t1 t2 L, (forall x, x \symbol{92}notin L -> t1\^{}x = t2\^{}x) -> pterm\_abs t1 = pterm\_abs t2.
+Proof.
+  intro t1; induction t1.
+
+\begin{itemize}
+\item  intro t2; induction t2.
+    + intros L H.
+      unfold open in H.
+      Admitted.
+
+\end{itemize}
+
+
+Lemma subst\_open: forall t u x n,  (\{S n \~{}> u\} t) \^{} x = \{S n \~{}> (u \^{} x)\} (t \^{} x). 
+Proof.
+  Admitted.
+
+
+Lemma subst\_term': forall t, (forall u n, term t -> \{n \~{}> u\} t = t).
+Proof.
+  assert (Hind := term\_ind (fun t => forall u n, term t -> \{n \~{}> u\} t = t)).
+  intro t; apply Hind.
+
+\begin{itemize}
+\item  intros x u n Hterm.
+    reflexivity.
+
+\item  intros t1 t2 Ht1 IHt1 Ht2 IHt2 u n Hterm.
+    simpl.
+    inversion Hterm; subst.
+    rewrite IHt1.
+    + rewrite IHt2.
+      * reflexivity.
+      * assumption.
+    + assumption.
+
+\item  intros L t1 Ht1 IHt1 u n Hterm.
+    inversion Hterm; subst.
+    simpl.
+    apply abs\_body with L0.
+    intros x H.
+    apply H0 in H.
+    generalize dependent H.
+    rewrite subst\_open.
+    assert (IHt1' := (IHt1 x)).
+    apply IHt1.
+
+\end{itemize}
+Admitted.
+
+
+Lemma subst\_lemma\_lterms: forall (t1 t2 t3: pterm) (i j:nat), lterm t2 -> lterm t3 -> i <> j -> \{j \~{}> t3\} (\{i \~{}> t2\} t1) = \{i \~{}> t2\} (\{j \~{}> t3\} t1).
+Proof.
+  intro t1; induction t1.
+
+\begin{itemize}
+\item  intros t2 t3 i j H2 H3 Hle.
+    simpl.
+    destruct (i ===n); subst.
+    + destruct (j === n).
+      * symmetry in e.
+        contradiction.
+      * Admitted.
+
+\end{itemize}
+
+
+
+
+
+
+
+
+Definition Rel (A:Type) := A -> A -> Prop.
+
+
+Inductive contextual\_closure (R: Rel pterm) : Rel pterm :=
+  | redex : forall t s, R t s -> contextual\_closure R t s
+  | app\_left : forall t t' u, contextual\_closure R t t' -> term u ->
+	  		      contextual\_closure R (pterm\_app t u) (pterm\_app t' u)
+  | app\_right : forall t u u', contextual\_closure R u u' -> term t ->
+	  		       contextual\_closure R (pterm\_app t u) (pterm\_app t u')
+  | abs\_in : forall t t' L, (forall x, x \symbol{92}notin L -> contextual\_closure R (t\^{}x) (t'\^{}x)) ->
+                               contextual\_closure R (pterm\_abs t) (pterm\_abs t').
+
+
+Inductive lcontextual\_closure (R: Rel pterm) : Rel pterm :=
+  | lredex : forall t s, R t s -> lcontextual\_closure R t s
+  | lapp\_left : forall t t' u, lcontextual\_closure R t t' -> lterm u ->
+	  		      lcontextual\_closure R (pterm\_app t u) (pterm\_app t' u)
+  | lapp\_right : forall t u u', lcontextual\_closure R u u' -> lterm t ->
+	  		       lcontextual\_closure R (pterm\_app t u) (pterm\_app t u')
+  | labs\_in : forall t t' L, (forall x, x \symbol{92}notin L -> contextual\_closure R (t\^{}x) (t'\^{}x)) ->
+                               lcontextual\_closure R (pterm\_abs t) (pterm\_abs t')
+  | l\_abs\_in : forall t t' L, (forall x, x \symbol{92}notin L -> lcontextual\_closure R (t\^{}x) (t'\^{}x)) ->
+                               lcontextual\_closure R (pterm\_labs t) (pterm\_labs t').
+
+
+Fixpoint erase (t:pterm) : pterm :=
+  match t with
+  | pterm\_app t1 t2 => pterm\_app (erase t1) (erase t2)
+  | pterm\_abs t1 => pterm\_abs (erase t1)
+  | pterm\_labs t1 => pterm\_abs (erase t1)
+  | \_ => t
+  end.
+
+
+
+
+Lemma erase\_idemp: forall a, erase (erase a) = erase a.
+Proof.
+  induction a.
+
+\begin{itemize}
+\item  reflexivity.
+
+\item  reflexivity.
+
+\item  simpl.
+    rewrite IHa1.
+    rewrite IHa2.
+    reflexivity.
+
+\item  simpl.
+    rewrite IHa; reflexivity.
+
+\item  simpl.
+    rewrite IHa; reflexivity.
+
+\end{itemize}
+Qed.
+
+
+Inductive refltrans (red: Rel pterm) : Rel pterm :=
+| reflex: forall a, refltrans red a a
+| atleast1: forall a b, red a b -> refltrans red a b
+| rtrans: forall a b c, refltrans red a b -> refltrans red b c -> refltrans red a c.
+
+
+Inductive refltrans' (red: Rel pterm) : Rel pterm :=
+| refl: forall a, refltrans' red a a
+| rtrans': forall a b c, red a b -> refltrans' red b c -> refltrans' red a c.
+
+
+Lemma refltrans\_equiv: forall (R: Rel pterm) (a b: pterm), refltrans R a b <-> refltrans' R a b.
+Proof.
+  intros R a b; split.
+
+\begin{itemize}
+\item  intro H.
+    induction H.
+    + apply refl.
+    + apply rtrans' with b.
+      * assumption.
+      * apply refl.
+    + clear H H0.
+      induction IHrefltrans1.
+      * assumption.
+      * apply rtrans' with b.
+        ** assumption.
+        ** apply IHIHrefltrans1; assumption.
+
+\item  intro H.
+    induction H.
+    + apply reflex.
+    + apply rtrans with b.
+      * apply atleast1; assumption.
+      * assumption.
+
+\end{itemize}
+Qed.    
+
+
+Inductive rule\_b : Rel pterm  :=
+  reg\_rule\_b : forall (t u:pterm), body t -> term u ->
+    rule\_b (pterm\_app(pterm\_abs t) u) (t \^{}\^{} u).
+Notation ``t -->B u'' := (contextual\_closure rule\_b t u) (at level 60).
+Notation ``t -->>B u'' := (refltrans (contextual\_closure rule\_b) t u) (at level 60).
+
+
+Inductive rule\_lb : Rel pterm  :=
+  | reg\_rule\_bb : forall (t u:pterm), body t -> term u ->
+    rule\_lb (pterm\_app(pterm\_abs t) u) (t \^{}\^{} u)
+  | reg\_rule\_lb : forall (t u:pterm),
+    body t -> term u ->
+    rule\_lb (pterm\_app(pterm\_labs t) u) (t \^{}\^{} u).
+Notation ``t -->lB u'' := (lcontextual\_closure rule\_lb t u) (at level 60).
+Notation ``t -->>lB u'' := (refltrans (lcontextual\_closure rule\_lb) t u) (at level 60).
+
+
+Fixpoint phi (t:pterm) : pterm :=
+  match t with
+  | pterm\_app t1 t2 => match t1 with
+                      | pterm\_labs t1' => (phi t1') \^{}\^{} (phi t2)
+                      | \_ => pterm\_app (phi t1) (phi t2)
+                      end
+  | pterm\_abs t1 => pterm\_abs (phi t1)
+  | pterm\_labs t1 => pterm\_labs (phi t1)
+  | \_ => t
+  end.
+
+
+Lemma phi\_open\_rec\_fvar: forall t n x, phi(open\_rec n (pterm\_fvar x) t) = open\_rec n (pterm\_fvar x) (phi t).
+Proof.  
+  intro t; induction t.
+
+\begin{itemize}
+\item  intros n' x.
+    simpl.
+    destruct(n' === n).
+    + reflexivity.
+    + reflexivity.
+
+\item  intros n x.
+    reflexivity.
+
+\item  intros n x.
+    change (\{n \~{}> (pterm\_fvar x)\} pterm\_app t1 t2) with (pterm\_app (\{n \~{}> (pterm\_fvar x)\} t1) (\{n \~{}> (pterm\_fvar x)\} t2)).
+    generalize dependent IHt1.
+    case t1.
+    + intros n0 IHt1.
+      simpl (phi (pterm\_app (pterm\_bvar n0) t2)).
+      simpl ( \{n \~{}> pterm\_fvar x\} pterm\_app (pterm\_bvar n0) (phi t2)).
+      simpl (\{n \~{}> pterm\_fvar x\} pterm\_bvar n0).
+      destruct(n === n0); subst.
+      * simpl.
+        rewrite IHt2.
+        reflexivity.
+      * simpl.
+        rewrite IHt2.
+        reflexivity.
+    + intros v IHt1.
+      simpl.
+      f\_equal.
+      apply IHt2. 
+    + intros t11 t12 IHt1.
+      simpl (\{n \~{}> pterm\_fvar x\} pterm\_app t11 t12).
+      change (phi
+    (pterm\_app (pterm\_app (\{n \~{}> pterm\_fvar x\} t11) (\{n \~{}> pterm\_fvar x\} t12))
+               (\{n \~{}> pterm\_fvar x\} t2))) with
+    (pterm\_app (phi (pterm\_app (\{n \~{}> pterm\_fvar x\} t11) (\{n \~{}> pterm\_fvar x\} t12)))
+               (phi (\{n \~{}> pterm\_fvar x\} t2))).
+      change (phi (pterm\_app (pterm\_app t11 t12) t2)) with
+          (pterm\_app (phi (pterm\_app t11 t12)) (phi t2)).
+      change (\{n \~{}> pterm\_fvar x\} pterm\_app (phi (pterm\_app t11 t12)) (phi t2)) with (pterm\_app (\{n \~{}> pterm\_fvar x\}(phi (pterm\_app t11 t12))) (\{n \~{}> pterm\_fvar x\}(phi t2))).
+      rewrite IHt2.
+      rewrite <- IHt1.
+      reflexivity.
+    + intros t1' IHt1.
+      simpl in *.
+      rewrite IHt2.
+      rewrite <- IHt1.
+      reflexivity.
+    + intros t1' IHt1.
+
+
+      simpl (\{n \~{}> pterm\_fvar x\} pterm\_labs t1').
+      simpl in *.
+      rewrite IHt2.
+      replace (\{n \~{}> pterm\_fvar x\} (phi t1' \^{}\^{} phi t2)) with (phi (\{S n \~{}> pterm\_fvar x\} t1') \^{}\^{} (\{n \~{}> pterm\_fvar x\} phi t2)).
+      * reflexivity.
+      * assert (IHt1' := IHt1 n x).
+        clear IHt1.
+        inversion IHt1'. clear IHt1'.
+        rewrite H0.
+        Admitted.
+
+\end{itemize}
+
+
+Corollary phi\_open: forall t x, phi(t\^{}x) = (phi t)\^{}x.
+Proof.
+  intros t x.
+  unfold open.
+  Admitted.
+  
+
+Lemma phi\_term: forall t, lterm t -> term (phi t).
+Proof.
+  intros t Hlterm.
+  induction Hlterm.
+
+\begin{itemize}
+\item  simpl.
+    apply term\_var. 
+
+\item  generalize dependent t2.
+    induction t1.
+    + simpl in *.
+      inversion Hlterm1.
+    + simpl in *.
+      intros t2 Hlterm2 Hterm2.
+      apply term\_app.
+        * apply term\_var.
+        * assumption. 
+    + intros t2 Hlterm2 Hterm2.
+      admit.
+    + intros t2 Hlterm2 Hterm2.
+      simpl.
+      apply term\_app.
+        * simpl in IHHlterm1.
+          assumption.
+        * assumption. 
+    + intros t2 Hlterm2 Hterm2.
+      clear IHt1.
+      simpl in *.
+      inversion Hlterm1.
+
+\item  simpl.    
+    unfold open.
+    admit.
+
+\item  simpl.
+
+\end{itemize}
+Admitted.
+
+
+Lemma term\_fvar\_to\_term: forall t1 t2 t3 x, term (phi (pterm\_app t1 t2)\^{}x) -> term t3 -> term (phi (pterm\_app t1 t2)\^{}\^{}t3). 
+Proof.
+Admitted.  
+
+
+Lemma term\_phi\_open: forall t1 t2 x L,  x \symbol{92}notin L -> term (phi (t1 \^{} x)) -> term (phi t2) -> term (phi t1 \^{}\^{} phi t2).
+Proof.
+  intro t; induction t.
+
+\begin{itemize}
+\item  intros t2 x L HL Hterm1 Hterm2.
+    unfold open in *.
+    generalize dependent n.
+    intro n; case n.
+    + intro H.
+      assumption.
+    + intros n'; simpl.
+      intro H; inversion H.
+
+\item  intros t3 x L HL.
+    intros Hfvphi Ht3.
+    simpl.
+    assumption.
+
+\item  intros t2' x L HL Hterm1 Hterm2.
+    unfold open in *.
+   
+\end{itemize}
+Admitted.
+  
+
+
+
+Lemma lterm\_preserves\_fvar : forall M x, erase M = (pterm\_fvar x) -> M = (pterm\_fvar x).
+Proof.
+  induction M.
+
+\begin{itemize}
+\item  intros x H.
+    simpl in H.
+    exact H.
+
+\item  intros x H.
+    exact H.
+
+\item  intros x H.
+    simpl in H.
+    inversion H.
+
+\item  intros x H.
+    simpl in H.
+    inversion H.
+
+\item  intros x H.
+    simpl in H.
+    inversion H.
+
+\end{itemize}
+Qed.
+
+
+Lemma lterm\_preserves\_bvar : forall M n, erase M = (pterm\_bvar n) -> M = (pterm\_bvar n).
+Proof.
+  Admitted.
+
+
+Lemma lterm\_preserves\_app : forall M N L, erase M = (pterm\_app N L) -> exists N' L', M = (pterm\_app N' L').
+Proof.
+  Admitted.
+
+
+Lemma lterm\_preserves\_abs : forall M N, erase M = (pterm\_abs N) -> exists N', M = (pterm\_abs N') \symbol{92}/ M = (pterm\_labs N').
+Proof.
+Admitted.
+
+
+Lemma open\_rec\_preserves\_labs: forall t u k, (open\_rec k u (pterm\_labs t)) = (pterm\_labs (open\_rec (S k) u t)).
+Proof.
+  intros t u k .
+  reflexivity.
+Qed.
+
+
+Lemma erase\_open\_rec : forall (M N: pterm) (k : nat), erase (\{k \~{}> N\} M) = \{k \~{}> (erase N)\} (erase M).
+Proof.
+  induction M.
+
+\begin{itemize}
+\item  intros N K.
+    simpl.
+    destruct (K === n).
+    + reflexivity.
+    + reflexivity.
+
+\item  intros N k. 
+    reflexivity.
+
+\item  intros N k.
+    simpl.
+    f\_equal.
+    + apply IHM1.
+    + apply IHM2.
+
+\item  intros N k.
+    simpl.
+    f\_equal.
+    apply IHM.
+
+\item  intros N k.
+    simpl.
+    f\_equal.
+    apply IHM.
+
+\end{itemize}
+Qed.
+
+
+Corollary erase\_open : forall M N: pterm, erase (M \^{}\^{} N) = (erase M) \^{}\^{} (erase N).
+Proof.
+  unfold open.
+  intros M N.
+  apply  erase\_open\_rec.
+Qed.
+
+
+Lemma phi\_subst\_rec: forall (M N: pterm) (k: nat), term N -> phi (\{k \~{}> N\} M) = \{k \~{}> (phi N)\}(phi M).
+Proof.
+  induction M.
+
+\begin{itemize}
+\item  intros N k.
+    simpl.
+    destruct (k === n).
+    + reflexivity.
+    + reflexivity.
+
+\item  intros N k.
+    simpl.
+    reflexivity.
+
+\item  intros N k.
+    generalize dependent M1. 
+    intro M1.
+    case M1.
+    + intros M1' IHM1.
+      change (phi (pterm\_app (pterm\_bvar M1') M2)) with  (pterm\_app (phi(pterm\_bvar M1')) (phi M2)).
+      change ( \{k \~{}> phi N\} pterm\_app (phi (pterm\_bvar M1')) (phi M2)) with
+          ( pterm\_app ( \{k \~{}> phi N\}(phi (pterm\_bvar M1'))) ( \{k \~{}> phi N\}(phi M2))).
+      assert( IH' := IHM1 N k).
+      change (\{k \~{}> N\} pterm\_app (pterm\_bvar M1') M2) with (pterm\_app (\{k \~{}> N\}(pterm\_bvar M1')) (\{k \~{}> N\}M2)).
+      admit.     + intros N0 k0.
+      simpl in *.
+      f\_equal.
+
+\end{itemize}
+                                              
+
+                  Admitted.    
+
+
+Corollary phi\_subst: forall M N, phi (M \^{}\^{} N) = (phi M) \^{}\^{} (phi N). 
+Proof.
+  Admitted.
+
+
+Lemma phi\_prop: forall M N : pterm, lterm M -> lterm N -> (M -->>lB N) -> (phi M) -->>B (phi N).
+Proof.
+  intros M N Hterm1 Hterm2 H.
+  induction H.
+
+\begin{itemize}
+\item  Admitted.
+
+\end{itemize}
+
+
+
+
+
+
+Lemma erase\_prop\_str: forall M' M N , pterm\_app (pterm\_abs M) N = erase M' -> exists u v, erase u = M -> erase v = N -> (M' = pterm\_app (pterm\_labs u) v) \symbol{92}/ (M' = pterm\_app (pterm\_abs u) v).
+Proof.
+Admitted.
+
+
+Lemma erase\_prop1 : forall M N: pterm, term M -> term N -> (M -->B N) -> forall M' N', (erase M' = M) /\symbol{92} (erase N' = N) ->  (M' -->lB N').
+Proof.
+  intros M N HtM HtN Hred.
+
+
+  induction Hred.
+
+\begin{itemize}
+\item  inversion H; subst.
+       Admitted.
+   
+\end{itemize}
+
+
+Lemma erase\_prop : forall M N M' N': pterm, term M -> term N -> (M -->>B N) -> erase M' = M -> erase N' = N ->  (M' -->>lB N').
+Proof.
+  intros M N M' N' HtM HtN Hred HeM HeN.
+  induction Hred.
+
+\begin{itemize}
+\item  Admitted.
+
+\end{itemize}
+
+
+
+
+Lemma phi\_preserves\_term: forall t, term t -> term (phi t).
+Proof.
+  intros t H.
+  induction H.
+  Admitted.
+
+
+Lemma beta\_phi\_one\_step: forall t1 t2, t1 -->lB t2 -> phi(t1) -->B phi(t2).
+Proof.
+  intros t1 t2 H.
+  induction H.
+
+\begin{itemize}
+\item  inversion H; subst.
+    + simpl.
+      rewrite phi\_subst.
+      apply redex.
+      apply reg\_rule\_b.
+      * admit.        
+      * apply phi\_preserves\_term; assumption.
+    + Admitted.
+
+\end{itemize}
+
+
+Lemma beta\_phi: forall t1 t2, t1 -->>lB t2 -> phi(t1) -->>B phi(t2).
+Proof.
+  intros t1 t2 H.
+  induction H.
+
+\begin{itemize}
+\item  apply reflex.
+
+\item  apply beta\_phi\_one\_step in H.
+    apply atleast1; assumption.
+
+\item  Admitted.
+
+\end{itemize}
+
+
+Lemma erase\_phi: forall t t1 t2, erase(t) = t1 -> phi(t) = t2 -> t1 -->>B t2.
+Proof.
+  
+
+  intro t; induction t using pterm\_size\_induction.
+
+\begin{itemize}
+\item  intros t1 t2 Herase Hphi.
+    simpl in *.
+    rewrite Herase in Hphi.
+    rewrite Hphi.
+    apply reflex.
+
+\item  intros t1 t2 Herase Hphi.
+    simpl in *.
+    rewrite Herase in Hphi.
+    rewrite Hphi.
+    apply reflex.
+
+\item  
+
+\end{itemize}
+  Admitted.
+
+
+Lemma term\_erase: forall t, term t -> erase(t) = t.
+Proof.
+  Admitted.
+
+
+Lemma body\_erase: forall t, body t -> erase(t) = t.
+Proof.
+  Admitted.
+
+
+  esconde código
+
+
+
+
+
+
+
+
+Theorem strip\_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\symbol{92} t2 -->>B t3.
+  Proof.
+  intros t t1 t2 H1 H2.
+  induction H1.
+
+\begin{itemize}
+\item  inversion H; subst.
+    apply refltrans\_equiv in H2.
+    remember (t1 \^{}\^{} u) as b.
+    generalize  dependent b.
+    induction H2.
+    + exists (t1 \^{}\^{} u); split.
+      * apply reflex.
+      * apply atleast1.
+        apply redex.
+        assumption.
+    + inversion H; subst.
+      rewrite <- H3 in H.
+      clear H0 H1 H3.
+
+
+      inversion H2; subst.
+      * admit.
+      * admit.
+      * admit.
+    + 
+      apply open\_rec\_inj in H3.
+      destruct H3 as \coqdocvar{Heq1} \coqdocvar{Heq2}; subst.
+      clear H4 H6.
+      induction H2.
+      * Admitted.
+
+\end{itemize}
+
+
+
+
+
+
+    Lemma erase\_lbeta\_2313: forall t1 t2, t1 -->>B t2 -> forall t1' t2', erase(t1') = t1 /\symbol{92} erase(t2') = t2 -> t1' -->>lB t2'.
+    Proof.
+      Admitted.
+
+
+    assert (H': pterm\_app (pterm\_labs t1) u -->>B t2).
+    \{
+      apply erase\_lbeta\_2313.
+    \}
+     in H2 with (pterm\_app (pterm\_labs t1) u) \_.
+
+
+
+
+  assert (H2' := H2).
+  assert (forall t', erase(t') = t -> forall t2', erase(t2') = t2 -> t' -->>lB t2').
+  \{
+    apply erase\_lbeta; assumption.   
+  \}
+  inversion H1; subst.
+
+\begin{itemize}
+\item  inversion H0; subst.
+    assert (erase (pterm\_app (pterm\_labs t0) u) = pterm\_app (pterm\_abs t0) u -> forall t2', erase t2' = t2 -> pterm\_app (pterm\_labs t0) u -->>lB t2').
+    \{
+      apply H.
+    \}
+    clear H.
+    assert (erase (pterm\_app (pterm\_labs t0) u) = pterm\_app (pterm\_abs t0) u).
+    \{
+      simpl.
+      rewrite body\_erase.
+
+\begin{itemize}
+\item  rewrite term\_erase.
+        + reflexivity.
+        + assumption.
+
+\item  assumption.
+
+\end{itemize}
+    \}
+    assert (forall t2' : pterm, erase t2' = t2 -> pterm\_app (pterm\_labs t0) u -->>lB t2').
+    \{
+      apply H5.
+      assumption.
+    \}
+    clear H H5.
+    Admitted.
+
+\end{itemize}
+
+
+
+
+\begin{coqdoccode}
 \end{coqdoccode}
