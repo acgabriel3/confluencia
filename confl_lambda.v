@@ -59,7 +59,7 @@ Inductive pterm : Set :=
   | pterm_labs  : pterm -> pterm.
 
 (** Um pré-termo é um termo do cálculo lambda que possui em si indexs de de Bruijin que não foram
-substituídos. (esta definição está correta?)
+substituídos. (esta definição está correta?)*)
 
 (**Definição alternativa:*)
 
