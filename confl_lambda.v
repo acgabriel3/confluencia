@@ -35,12 +35,12 @@ necessário definir o que é uma variável livre e uma variável ligada?*)
 (** A notação de nomes locais é definida de forma a trabalhar com index's ligados à abstrações
 para representar variáveis ligadas, e variáveis nomeadas para representar variáveis livres. Dessa
 forma podemos ter um conjunto de símbolos nesta notação que não sejam válidos semanticamente. 
-Vamos exemplificar: 
+Vamos exemplificar: *)
 
-Data a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
+(** Dada a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
 que apresentamos. O index 0 neste caso indica que existem 0 passos para em uma aplicação
 substituir a variável ligada que o mesmo representa, estando esse index portanto ligado
-diretamente à abstração apresentada, e sendo dessa maneira válido semanticamento. Porém,
+diretamente à abstração apresentada, e sendo dessa maneira válido semanticamente. Porém,
 sintaticamente o index pode ser um valor iteiro k qualquer. Assim, por exemplo, ao 
 fazermos $\lambda.1$, estamos construindo semanticamente uma relação que não possui 
 significado válido. Queremos representar variáveis ligadas por meio de index's e neste caso o 
@@ -61,9 +61,9 @@ Inductive pterm : Set :=
 (** Um pré-termo é um termo do cálculo lambda que possui em si indexs de de Bruijin que não foram
 substituídos. (esta definição está correta?)
 
-Definição alternativa:
+(**Definição alternativa:*)
 
-Um pré-termo é um conjunto de símbolos do cálculo lambda que operam conjuntamente e ainda
+(** Um pré-termo é um conjunto de símbolos do cálculo lambda que operam conjuntamente e ainda
 não foram verificados como totalmente fechados.*)
 
 (*
@@ -243,10 +243,12 @@ Notation "{ k ~> u } t" := (open_rec k u t) (at level 67).
 
 (** Notação para representar a abertura de um termo, substituindo as variáveis ligadas
 por qualquer tipo de pré-termo.*)
+
 Notation "t ^^ u" := (open t u) (at level 67). 
 
 (** Notação para representar abertura de um pré-termo utilizando uma variável livre
 x:*)
+
 Notation "t ^ x" := (open t (pterm_fvar x)).   
 
 (* begin hide *)
@@ -357,6 +359,7 @@ definir o conceito de tamanho do termo. Esta definição é dada abaixo, dando o
 para variáveis livres (pterm_fvar x) e variáveis ligadas (pterm_bvar i) e contando recursivamente
 a partir das estruturas mais complexas do termo, tal como a aplicação, a abstração e a abstração
 marcada: *)
+
 Fixpoint pterm_size (t : pterm) : nat :=
  match t with
  | pterm_bvar i    => 1
