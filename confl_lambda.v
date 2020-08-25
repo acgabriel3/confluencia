@@ -29,7 +29,27 @@ Notation "i === j" := (Peano_dec.eq_nat_dec i j) (at level 67).
 
 (** * Locally Nameless Notation *)
 
-(** Pré-termos são definidos de acordo com a seguinte gramática: *)
+(*é
+necessário definir o que é uma variável livre e uma variável ligada?*)
+
+(** A notação de nomes locais é definida de forma a trabalhar com index's ligados à abstrações
+para representar variáveis ligadas, e variáveis nomeadas para representar variáveis livres. Dessa
+forma podemos ter um conjunto de símbolos nesta notação que não sejam válidos semanticamente. 
+Vamos exemplificar: 
+
+Data a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
+que apresentamos. O index 0 neste caso indica que existem 0 passos para em uma aplicação
+substituir a variável ligada que o mesmo representa, estando esse index portanto ligado
+diretamente à abstração apresentada, e sendo dessa maneira válido semanticamento. Porém,
+sintaticamente o index pode ser um valor iteiro k qualquer. Assim, por exemplo, ao 
+fazermos $\lambda.1$, estamos construindo semanticamente uma relação que não possui 
+significado válido. Queremos representar variáveis ligadas por meio de index's e neste caso o 
+index 1 não está ligado à nenhuma abstração, portanto não representa uma variável ligada
+e não é válido para nossa representação.*)
+
+(** Assim podemos definir o conceito de pré-termo como sendo: Todo conjunto de símbolos sintaticamente
+válidos, que ainda não temos certeza acerca da validade semântica. Matematicamente os pré-termos 
+são definidos de acordo com a seguinte gramática: *)
 
 Inductive pterm : Set :=
   | pterm_bvar : nat -> pterm
@@ -39,7 +59,12 @@ Inductive pterm : Set :=
   | pterm_labs  : pterm -> pterm.
 
 (** Um pré-termo é um termo do cálculo lambda que possui em si indexs de de Bruijin que não foram
-substituídos. (esta definição está correta?)*)
+substituídos. (esta definição está correta?)
+
+Definição alternativa:
+
+Um pré-termo é um conjunto de símbolos do cálculo lambda que operam conjuntamente e ainda
+não foram verificados como totalmente fechados.*)
 
 (*
 Inductive ctx (t:pterm) :=
@@ -200,7 +225,7 @@ nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, ass
 a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.*)
 
 
-(** Assim, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
+(** Com isso, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
 como "open", onde u é o nome de uma variável qualquer e t é um pré-termo ,logo abaixo:*)
 
 Definition open t u := open_rec 0 u t.
@@ -215,7 +240,13 @@ definida como se segue:*)
 Notation "{ k ~> u } t" := (open_rec k u t) (at level 67).
 
 (*não me recordo no momento a utilidade das notações abaixo*)
+
+(** Notação para representar a abertura de um termo, substituindo as variáveis ligadas
+por qualquer tipo de pré-termo.*)
 Notation "t ^^ u" := (open t u) (at level 67). 
+
+(** Notação para representar abertura de um pré-termo utilizando uma variável livre
+x:*)
 Notation "t ^ x" := (open t (pterm_fvar x)).   
 
 (* begin hide *)
@@ -248,7 +279,9 @@ Inductive term : pterm -> Prop :=
 Para ser um termo fechado, seguimos uma definição recursiva, onde toda variável livre, e portanto
 nomeada é fechada, toda aplicação é fechada, se seus dois termos internos são fechados, e toda
 abstração é fechada, se todos os termos que fazem parte da mesma também são fechados. Veja que esta é
-exatamente a definição que temos logo acima.*)
+exatamente a definição que temos logo acima. Podemos deixar o entendimento mais fácil com a seguinte
+definição: Um termo é um pré-termo sem nenhuma variável ligada inválida, ou seja, nenhum index não ligado
+à uma abstração de alguma maneira.*)
 
 (** Dessa forma também é interessante definir o conceito de corpo, como sendo todo pré-termo
 que após uma abertura no index 0, por uma variável nomeada livre x, torna-se um termo fechado.
@@ -256,6 +289,9 @@ A definição está logo abaixo:*)
 
 Definition body t :=
   exists L, forall x, x \notin L -> term (t ^ x).
+
+(** Perceba que a definição de body foi utilizada na definição recursiva de termo, para
+representar as abtrações válidas semanticamente, segundo os conceitos aqui já apresentados.*)
 
 (*
 Definition lterm t := term t \/ 
@@ -270,7 +306,7 @@ Inductive lterm : pterm -> Prop :=
 (** Para realizar a prova da confluência é necessária a definição de um termo marcado. Um
 termo marcado contém exatamente as mesmas propriedades de um termo, exceto que, pode possuir
 abstrações marcadas. Abstrações marcadas são aquelas que estão postas em uma aplicação válida,
-resultando em uma B-redução. Abstrações que não fazem parte de uma aplicação, não podem ser 
+aonde pode ser aplicada uma B-redução. Abstrações que não fazem parte de uma aplicação, não podem ser 
 abstrações marcadas. Podemos ver essa definição em termos recursivos logo abaixo:*)
 
 Inductive lterm : pterm -> Prop :=
@@ -288,8 +324,9 @@ Inductive lterm : pterm -> Prop :=
       lterm t2 ->
       lterm (pterm_app (pterm_labs t1) t2).
 
-(** Assim, também é possível definir o corpo marcado, como sendo o pré-termo que após uma abertura
-recursiva do index 0 com uma variável nomeada livre qualquer x, torna-se um termo marcado:*)
+(** Assim, também é possível definir o corpo marcado, como sendo o pré-termo que possui dentro de 
+si uma abstração marcada, aonde após uma abertura recursiva do index 0 com uma variável nomeada 
+livre qualquer x, torna-se um termo marcado:*)
 
 Definition lbody t :=
   exists L, forall x, x \notin L -> lterm (t ^ x).
@@ -310,8 +347,16 @@ Proof.
     + assumption.
 Admitted. *)
 
-(* begin hide *)
+(* a regra abaixo foi utilizada?*)
 
+(** *Definições características *)
+
+(** Para ajudar nas diversas abordagens de prova que serão utilizadas, podemos definir
+algumas propriedades. Em provas indutivas no tamanho da estrutura sintática, precisamos 
+definir o conceito de tamanho do termo. Esta definição é dada abaixo, dando o valor de 1
+para variáveis livres (pterm_fvar x) e variáveis ligadas (pterm_bvar i) e contando recursivamente
+a partir das estruturas mais complexas do termo, tal como a aplicação, a abstração e a abstração
+marcada: *)
 Fixpoint pterm_size (t : pterm) : nat :=
  match t with
  | pterm_bvar i    => 1
@@ -358,6 +403,8 @@ Proof.
     rewrite <- IHt.
     reflexivity.
 Qed.
+
+(* begin hide *)
 
 Lemma strong_induction :
  forall (P: nat -> Prop),
