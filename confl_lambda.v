@@ -359,7 +359,7 @@ definir o conceito de tamanho do termo. Esta definição é dada abaixo, dando o
 para variáveis livres (pterm_fvar x) e variáveis ligadas (pterm_bvar i) e contando recursivamente
 a partir das estruturas mais complexas do termo, tal como a aplicação, a abstração e a abstração
 marcada: *)
-
+(* begin hide *)
 Fixpoint pterm_size (t : pterm) : nat :=
  match t with
  | pterm_bvar i    => 1
@@ -503,6 +503,7 @@ Proof.
     rewrite <- Hopen.
     symmetry; assumption.
 Qed.
+(* end hide *)
 
 Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   match t with
@@ -513,6 +514,7 @@ Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   | pterm_labs t1    => lc_at (S k) t1
   end.
 
+(* talvez *)
 Lemma lc_at_open_rec_rename: forall t x y m n, lc_at m (open_rec n (pterm_fvar x) t) -> lc_at m (open_rec n (pterm_fvar y) t).
 Proof.
   intro t; induction t.
@@ -540,6 +542,7 @@ Proof.
     apply IHt with x; assumption.
 Qed.
 
+(* talvez *)
 Lemma lc_at_weaken: forall t n m, n <= m -> lc_at n t -> lc_at m t.
 Proof.
   intro t; induction t.
@@ -567,7 +570,8 @@ Proof.
     + apply le_n_S; assumption.
     + assumption.
 Qed.
-  
+
+(* talvez *)
 Lemma lc_at_open: forall t m x, lc_at m ({m ~> pterm_fvar x} t) <-> lc_at (S m) t.
 Proof.
   intros t m x; split.
@@ -632,6 +636,7 @@ Proof.
       simpl.
       apply IHt; assumption.
 Qed.
+
 
 Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
 Proof.
@@ -748,7 +753,9 @@ Admitted.
 Lemma not_S_is_0: forall n n0, n0 <> S n -> n0 = 0.
 Proof.
 Admitted.
-*)
+ *)
+
+(* talvez *)
 Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
   match t with
     | pterm_bvar n => if (k === n) then True else False
@@ -758,6 +765,7 @@ Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
     | pterm_labs t1 => has_free_index (S k) t1
   end.
 
+(* begin hide *)
 Lemma deMorgan: forall p q, (~ p) /\ (~ q) -> ~(p \/ q).
 Proof.
   intros p q H1.
@@ -768,6 +776,7 @@ Proof.
   - destruct(H1).
     contradiction.
 Qed.
+(* end hide *)
 
 Lemma term_rename: forall t x y, term (t ^ x) -> term (t ^ y).
 Proof.
