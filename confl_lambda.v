@@ -355,7 +355,9 @@ Admitted. *)
 algumas propriedades. Em provas indutivas no tamanho da estrutura sintática, precisamos 
 definir o conceito de tamanho do termo. Esta definição é dada abaixo, dando o valor de 1
 para variáveis livres (pterm_fvar x) e variáveis ligadas (pterm_bvar i) e contando recursivamente
-a partir das estruturas mais complexas do temo: *)
+a partir das estruturas mais complexas do termo, tal como a aplicação, a abstração e a abstração
+marcada: *)
+(* begin hide *)
 Fixpoint pterm_size (t : pterm) : nat :=
  match t with
  | pterm_bvar i    => 1
@@ -499,6 +501,7 @@ Proof.
     rewrite <- Hopen.
     symmetry; assumption.
 Qed.
+(* end hide *)
 
 Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   match t with
@@ -509,6 +512,7 @@ Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   | pterm_labs t1    => lc_at (S k) t1
   end.
 
+(* talvez *)
 Lemma lc_at_open_rec_rename: forall t x y m n, lc_at m (open_rec n (pterm_fvar x) t) -> lc_at m (open_rec n (pterm_fvar y) t).
 Proof.
   intro t; induction t.
@@ -536,6 +540,7 @@ Proof.
     apply IHt with x; assumption.
 Qed.
 
+(* talvez *)
 Lemma lc_at_weaken: forall t n m, n <= m -> lc_at n t -> lc_at m t.
 Proof.
   intro t; induction t.
@@ -563,7 +568,8 @@ Proof.
     + apply le_n_S; assumption.
     + assumption.
 Qed.
-  
+
+(* talvez *)
 Lemma lc_at_open: forall t m x, lc_at m ({m ~> pterm_fvar x} t) <-> lc_at (S m) t.
 Proof.
   intros t m x; split.
@@ -628,6 +634,7 @@ Proof.
       simpl.
       apply IHt; assumption.
 Qed.
+
 
 Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
 Proof.
@@ -744,7 +751,9 @@ Admitted.
 Lemma not_S_is_0: forall n n0, n0 <> S n -> n0 = 0.
 Proof.
 Admitted.
-*)
+ *)
+
+(* talvez *)
 Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
   match t with
     | pterm_bvar n => if (k === n) then True else False
@@ -754,6 +763,7 @@ Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
     | pterm_labs t1 => has_free_index (S k) t1
   end.
 
+(* begin hide *)
 Lemma deMorgan: forall p q, (~ p) /\ (~ q) -> ~(p \/ q).
 Proof.
   intros p q H1.
@@ -764,6 +774,7 @@ Proof.
   - destruct(H1).
     contradiction.
 Qed.
+(* end hide *)
 
 Lemma term_rename: forall t x y, term (t ^ x) -> term (t ^ y).
 Proof.
@@ -1860,18 +1871,53 @@ Proof.
   Admitted.
 
 (* begin hide *)
-  esconde código
-(* end hide *)
+  (* esconde código *)
 
 (** * Seção *)
 
 (** ** Subseção *)
 
 (** texto do relatório *)
+
+(* end hide *)
+
+(* end hide *)
+
+
+(** * Prova da confluência *)
+
+(** ** O que é confluência *)
+
+(** A confluência no cálculo lambda se define como: Dados dois termos iniciais,
+a partir de qualquer conjunto de reduções beta (duas bifurcações quaisquer na árvore de reduções)
+ é sempre possível chegar ao mesmo termo resultante (considerando a alfa equivalência). 
+Assim, esperamos provar que o cálculo lambda é confluente. Tal característica (confluência) 
+permite dizer que o cálculo lambda é determinístico, sendo possível sempre dadas condições iniciais
+prever um determinado resultado, ao operar as operações corretas (neste caso, reduções). *)
           
+
+
+(** ** O strip_lemma *)
+
+(** O strip_lemma é muito importante para a prova da confluência do cálculo lambda, utilizando
+a abordagem de Barendregt (citar). O strip_lemma prova a propriedade de que: Se um termo reduz em um
+passo para t1, e também reduz em n passos para t2, então existe um t3 tal que t1 reduz em n passos para t3
+e t2 reduz em n passos para t3. *)
+
+(** Perceba que essa propriedade ainda não prova a nossa definição de confluência, mas está um passo
+atrá de tal prova. Ao provar o strip_lemma e algumas outras propriedades, a prova da confluência do cálculo
+lamba é direta. De outra forma, podemos dizer que a prova da confluência no cálculo lambda é uma 
+generalização do strip_lemma. Aida não conseguimos fechar a prova formal do strip_lemma, mas iremos
+apresentar logo abaixo os nossos avanços e apresentar quais os próximo passos que devemos seguir.*)
+
+(* não estou conseguindo executar o theorem abaixo *) 
 Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3.
-  Proof.
+Proof.
   intros t t1 t2 H1 H2.
+  
+  (** A prova será realizada por meio da indução na estrutura da beta redução de t para t1. Assim chegamos a quatro
+casos (explicar melhor aqui a prova) *)
+
   induction H1.
   - inversion H; subst.
     apply refltrans_equiv in H2.
@@ -1942,4 +1988,4 @@ Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -
     Admitted.
 
 
-(* end hide *)
+
