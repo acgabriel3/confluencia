@@ -1303,6 +1303,34 @@ Inductive lcontextual_closure (R: Rel pterm) : Rel pterm :=
   | l_abs_in : forall t t' L, (forall x, x \notin L -> lcontextual_closure R (t^x) (t'^x)) ->
                                lcontextual_closure R (pterm_labs t) (pterm_labs t').
 
+(** * Prova da confluência *)
+
+(** ** O que é confluência *)
+
+(** A confluência no cálculo lambda se define como: Dados dois termos iniciais,
+a partir de qualquer conjunto de reduções beta (duas bifurcações quaisquer na árvore de reduções)
+ é sempre possível chegar ao mesmo termo resultante (considerando a alfa equivalência). 
+Assim, esperamos provar que o cálculo lambda é confluente. Tal característica (confluência) 
+permite dizer que o cálculo lambda é determinístico, sendo possível sempre dadas condições iniciais
+prever um determinado resultado, ao operar as operações corretas (neste caso, reduções). *)
+
+(** ** Operações necessárias para a prova da confluência *)
+
+(** Já definimos os termos marcados, por meio da criação de uma "marca" em determinados redex's. Um
+redex é toda abstração que é base para uma determinada aplicação definida em um determinado termo. Dessa forma, é
+necessário definir algumas operações que possam trabalhar com os termos marcados, permitindo que estas marcas
+sejam tanto colocadas, quanto retiradas. Geralmente as marcas são criadas na própria definição de uma determinada prova
+para então, serem retiradas depois, comparando um termo marcado à um termo não marcado, após uma determinada
+sequência de operações do $\lamba$-cálculo, permitindo assim provar determinada hipótese, pois com a marca
+é possível acompanhar a o estado de um determinado redex após sucessivas operações. *)
+
+(** Para isso, uma das operações definidas é a operação de apagamento (erase) de marcas, ou melhor,
+a operação de apagar. A operação de apagar consiste em, quando da sua aplicação em um termo, apagar
+todas as suas (se houverem), mas preservando a sua estrutura (sem reduzir os redex's). Essa operação
+foi definida recursivamente como se segue abaixo, sendo propagada para dentro de cada termo, com atenção
+especial à abstração marcada, que transforma-se em abstração, e mantém a propagação do erase. Assim, 
+após a aplicação da operação, um termo marcado se tornará um termo sem marcas, e um termo sem marcas não
+soferá nenhuma alteração.*)
 
 Fixpoint erase (t:pterm) : pterm :=
   match t with
@@ -1386,6 +1414,16 @@ Inductive rule_lb : Rel pterm  :=
     rule_lb (pterm_app(pterm_labs t) u) (t ^^ u).
 Notation "t -->lB u" := (lcontextual_closure rule_lb t u) (at level 60).
 Notation "t -->>lB u" := (refltrans (lcontextual_closure rule_lb) t u) (at level 60).
+
+(** Dessa forma, também é necessária a definição da função phi. A função phi também trabalha
+com marcas, assim como o erase, no entanto possui um funcionamento um pouco distinto. A função phi
+possui o papel de, ao ser aplicada em um termo, reduzir todos os redex's marcados (abstrações
+com marcas com um determinado termo sendo aplicado). Dessa forma, após a aplicação da operação phi
+um termo marcado torna-se um termo sem marcas, porém difere estruturalmente do seu estado anterior,
+pelo fato de agora possuir os antigos redexs marcados reduzidos. Perceba que um termo sem marcas, ao
+receber a aplicação de phi permanece inalterado, por definição. Definimos a operação como se segue logo
+abaixo, recursivamente, a operação phi é propaga pelo termo que sofre a aplicação, reduzindo os redex's
+marcados, o encontrar uma aplicação onde o termo mais à esquerda é uma abstração marcada.*)
 
 Fixpoint phi (t:pterm) : pterm :=
   match t with
@@ -1882,18 +1920,6 @@ Proof.
 (* end hide *)
 
 (* end hide *)
-
-
-(** * Prova da confluência *)
-
-(** ** O que é confluência *)
-
-(** A confluência no cálculo lambda se define como: Dados dois termos iniciais,
-a partir de qualquer conjunto de reduções beta (duas bifurcações quaisquer na árvore de reduções)
- é sempre possível chegar ao mesmo termo resultante (considerando a alfa equivalência). 
-Assim, esperamos provar que o cálculo lambda é confluente. Tal característica (confluência) 
-permite dizer que o cálculo lambda é determinístico, sendo possível sempre dadas condições iniciais
-prever um determinado resultado, ao operar as operações corretas (neste caso, reduções). *)
           
 
 

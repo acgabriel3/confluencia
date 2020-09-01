@@ -991,6 +991,42 @@ marcada: \begin{coqdoccode}
 \coqdocindent{15.50em}
 \coqdocvar{lcontextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_labs} \coqdocvar{t}) (\coqdocvar{pterm\_labs} \coqdocvar{t'}).\coqdoceol
 \coqdocemptyline
+\end{coqdoccode}
+\section{Prova da confluência}
+
+
+
+\subsection{O que é confluência}
+
+
+
+ A confluência no cálculo lambda se define como: Dados dois termos iniciais,
+a partir de qualquer conjunto de reduções beta (duas bifurcações quaisquer na árvore de reduções)
+ é sempre possível chegar ao mesmo termo resultante (considerando a alfa equivalência). 
+Assim, esperamos provar que o cálculo lambda é confluente. Tal característica (confluência) 
+permite dizer que o cálculo lambda é determinístico, sendo possível sempre dadas condições iniciais
+prever um determinado resultado, ao operar as operações corretas (neste caso, reduções). 
+
+\subsection{Operações necessárias para a prova da confluência}
+
+
+
+ Já definimos os termos marcados, por meio da criação de uma ``marca'' em determinados redex's. Um
+redex é toda abstração que é base para uma determinada aplicação definida em um determinado termo. Dessa forma, é
+necessário definir algumas operações que possam trabalhar com os termos marcados, permitindo que estas marcas
+sejam tanto colocadas, quanto retiradas. Geralmente as marcas são criadas na própria definição de uma determinada prova
+para então, serem retiradas depois, comparando um termo marcado à um termo não marcado, após uma determinada
+sequência de operações do $\lamba$-cálculo, permitindo assim provar determinada hipótese, pois com a marca
+é possível acompanhar a o estado de um determinado redex após sucessivas operações. 
+
+ Para isso, uma das operações definidas é a operação de apagamento (erase) de marcas, ou melhor,
+a operação de apagar. A operação de apagar consiste em, quando da sua aplicação em um termo, apagar
+todas as suas (se houverem), mas preservando a sua estrutura (sem reduzir os redex's). Essa operação
+foi definida recursivamente como se segue abaixo, sendo propagada para dentro de cada termo, com atenção
+especial à abstração marcada, que transforma-se em abstração, e mantém a propagação do erase. Assim, 
+após a aplicação da operação, um termo marcado se tornará um termo sem marcas, e um termo sem marcas não
+soferá nenhuma alteração.\begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Fixpoint} \coqdocvar{erase} (\coqdocvar{t}:\coqdocvar{pterm}) : \coqdocvar{pterm} :=\coqdoceol
 \coqdocindent{1.00em}
@@ -1124,6 +1160,17 @@ marcada: \begin{coqdoccode}
 \coqdockw{Notation} "t -->lB u" := (\coqdocvar{lcontextual\_closure} \coqdocvar{rule\_lb} \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
 \coqdocnoindent
 \coqdockw{Notation} "t -->>lB u" := (\coqdocvar{refltrans} (\coqdocvar{lcontextual\_closure} \coqdocvar{rule\_lb}) \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Dessa forma, também é necessária a definição da função phi. A função phi também trabalha
+com marcas, assim como o erase, no entanto possui um funcionamento um pouco distinto. A função phi
+possui o papel de, ao ser aplicada em um termo, reduzir todos os redex's marcados (abstrações
+com marcas com um determinado termo sendo aplicado). Dessa forma, após a aplicação da operação phi
+um termo marcado torna-se um termo sem marcas, porém difere estruturalmente do seu estado anterior,
+pelo fato de agora possuir os antigos redexs marcados reduzidos. Perceba que um termo sem marcas, ao
+receber a aplicação de phi permanece inalterado, por definição. Definimos a operação como se segue logo
+abaixo, recursivamente, a operação phi é propaga pelo termo que sofre a aplicação, reduzindo os redex's
+marcados, o encontrar uma aplicação onde o termo mais à esquerda é uma abstração marcada.\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Fixpoint} \coqdocvar{phi} (\coqdocvar{t}:\coqdocvar{pterm}) : \coqdocvar{pterm} :=\coqdoceol
@@ -1724,21 +1771,6 @@ marcada: \begin{coqdoccode}
 \coqdocemptyline
 \coqdocemptyline
 \end{coqdoccode}
-\section{Prova da confluência}
-
-
-
-\subsection{O que é confluência}
-
-
-
- A confluência no cálculo lambda se define como: Dados dois termos iniciais,
-a partir de qualquer conjunto de reduções beta (duas bifurcações quaisquer na árvore de reduções)
- é sempre possível chegar ao mesmo termo resultante (considerando a alfa equivalência). 
-Assim, esperamos provar que o cálculo lambda é confluente. Tal característica (confluência) 
-permite dizer que o cálculo lambda é determinístico, sendo possível sempre dadas condições iniciais
-prever um determinado resultado, ao operar as operações corretas (neste caso, reduções). 
-
 \subsection{O strip\_lemma}
 
 
