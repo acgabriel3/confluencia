@@ -1321,16 +1321,16 @@ redex é toda abstração que é base para uma determinada aplicação definida 
 necessário definir algumas operações que possam trabalhar com os termos marcados, permitindo que estas marcas
 sejam tanto colocadas, quanto retiradas. Geralmente as marcas são criadas na própria definição de uma determinada prova
 para então, serem retiradas depois, comparando um termo marcado à um termo não marcado, após uma determinada
-sequência de operações do $\lamba$-cálculo, permitindo assim provar determinada hipótese, pois com a marca
+sequência de operações do $\lambda$-cálculo, permitindo assim provar determinada hipótese, pois com a marca
 é possível acompanhar a o estado de um determinado redex após sucessivas operações. *)
 
 (** Para isso, uma das operações definidas é a operação de apagamento (erase) de marcas, ou melhor,
 a operação de apagar. A operação de apagar consiste em, quando da sua aplicação em um termo, apagar
-todas as suas (se houverem), mas preservando a sua estrutura (sem reduzir os redex's). Essa operação
+todas as suas (se houverem) marcas, mas preservando a sua estrutura (sem reduzir os redex's). Essa operação
 foi definida recursivamente como se segue abaixo, sendo propagada para dentro de cada termo, com atenção
 especial à abstração marcada, que transforma-se em abstração, e mantém a propagação do erase. Assim, 
 após a aplicação da operação, um termo marcado se tornará um termo sem marcas, e um termo sem marcas não
-soferá nenhuma alteração.*)
+sofrerá nenhuma alteração.*)
 
 Fixpoint erase (t:pterm) : pterm :=
   match t with
@@ -1923,7 +1923,7 @@ Proof.
           
 
 
-(** ** O strip_lemma *)
+(** * O strip_lemma *)
 
 (** O strip_lemma é muito importante para a prova da confluência do cálculo lambda, utilizando
 a abordagem de Barendregt (citar). O strip_lemma prova a propriedade de que: Se um termo reduz em um
@@ -1936,13 +1936,33 @@ lamba é direta. De outra forma, podemos dizer que a prova da confluência no c�
 generalização do strip_lemma. Aida não conseguimos fechar a prova formal do strip_lemma, mas iremos
 apresentar logo abaixo os nossos avanços e apresentar quais os próximo passos que devemos seguir.*)
 
+(** ** formalização da prova do strip_lemma *)
+
+(** Para realizar a prova do strip_lemma iremos considerar os termos t, t1 e t2. Porém, para isso, iremos
+considerar que o termo t possui em sua composição o seguinte redex: pterm_app (pterm_labs Q) P, e apenas (verificar) 
+iremos levar em conta este redex marcado para construir as nossas operações. Dessa forma devemos considerar o seguinte:
+t1 é o termo obtido ao aplicar uma beta redução marcada em t, e reduzir especificamente o redex marcado apresentado.
+Nesse caso, portanto, aplicando phi(t) temos t1. Ou seja:*)
+
+(** $ phi(t) = t1 $ *)
+
+(** E dessa forma, podemos dizer que existe um termo t' cuja erase(t) = t', e t' ->B t1. (Parece
+que inverti a explicacao, na verdade o que vem primeiro é t' assim t' aqui deveria ser empregado como
+t). Dessa forma podemos reduzir t' para t2 via n reduções beta, e provar que t1 tabém reduz para 
+t2 via n beta reduções. *)
+
+(* Explicar melhor*)
+(** O que está sendo realizado neste caso é a manutenção de um redex marcado, após n beta reduções quaisquer,
+que não ocorrem no redex marcado. Em seguida o erase e a função phi são utilizados para demonstrar que os termos convergem
+em t2.*)
+
 (* não estou conseguindo executar o theorem abaixo *) 
 Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3.
 Proof.
   intros t t1 t2 H1 H2.
   
   (** A prova será realizada por meio da indução na estrutura da beta redução de t para t1. Assim chegamos a quatro
-casos (explicar melhor aqui a prova) *)
+casos. *)
 
   induction H1.
   - inversion H; subst.
