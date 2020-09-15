@@ -1939,22 +1939,37 @@ apresentar logo abaixo os nossos avanços e apresentar quais os próximo passos 
 (** ** formalização da prova do strip_lemma *)
 
 (** Para realizar a prova do strip_lemma iremos considerar os termos t, t1 e t2. Porém, para isso, iremos
-considerar que o termo t possui em sua composição o seguinte redex: pterm_app (pterm_labs Q) P, e apenas (verificar) 
-iremos levar em conta este redex marcado para construir as nossas operações. Dessa forma devemos considerar o seguinte:
-t1 é o termo obtido ao aplicar uma beta redução marcada em t, e reduzir especificamente o redex marcado apresentado.
-Nesse caso, portanto, aplicando phi(t) temos t1. Ou seja:*)
+considerar que o termo t possui em sua composição o seguinte redex: pterm_app (pterm_labs Q) P, e apenas
+iremos levar em conta este redex marcado para construir as nossas operações. Ou seja, o termo deverá conter apenas
+um redex marcado, para podermos acompanhar o seu estado ao longo das operações de prova que serão realizadas.
+Dessa forma devemos considerar o seguinte: t1 é o termo obtido ao aplicar uma beta redução marcada em t, 
+e reduzir especificamente o redex marcado apresentado. Nesse caso, portanto, aplicando phi(t) temos t1. Ou seja:*)
 
 (** $ phi(t) = t1 $ *)
 
-(** E dessa forma, podemos dizer que existe um termo t' cuja erase(t) = t', e t' ->B t1. (Parece
-que inverti a explicacao, na verdade o que vem primeiro é t' assim t' aqui deveria ser empregado como
-t). Dessa forma podemos reduzir t' para t2 via n reduções beta, e provar que t1 tabém reduz para 
-t2 via n beta reduções. *)
+(** Com isso, podemos dizer que existe um termo t' cuja erase(t) = t', e t' ->B t1. Assim
+podemos reduzir t' para t2 via n reduções beta, e provar que t1 tabém reduz para t2 via n beta reduções. O que está sendo 
+realizado neste caso é a manutenção de um redex marcado, após n beta reduções quaisquer, que não ocorrem no redex marcado. 
+Em seguida o erase e a função phi são utilizados para demonstrar que os termos convergem em t2. Como esses termos são quaisquer
+e a única característica com a qual estamos trabalhando é a marca, então a prova pode ser generalizada para qualquer caso.*)
 
-(* Explicar melhor*)
-(** O que está sendo realizado neste caso é a manutenção de um redex marcado, após n beta reduções quaisquer,
-que não ocorrem no redex marcado. Em seguida o erase e a função phi são utilizados para demonstrar que os termos convergem
-em t2.*)
+(** Exemplificando um pouco melhor, uma espécie de contador, como o abaixo poderia ser utilizado para se certificar de que
+o termo que está sendo trabalhado é um termo com apenas um redex marcado. Este é um dos caminhos de prova com o qual estamos
+trabalhando no projeto.*)
+
+Fixpoint lredex_count (t:pterm):(nat) :=
+match t with
+  | pterm_bvar i => 0
+  | pterm_fvar x => 0
+  | pterm_app t1 t2 => (lredex_count t1) + (lredex_count t2)
+  | pterm_abs t1    => (lredex_count t1)
+  | pterm_labs t1   => 1 + (lredex_count t1)
+end.
+
+(* Como definir essa operação???? 
+Fixpoint oneredex (t:pterm): Set :=
+  | one_redex_pterm : forall (x : pterm), lredex_count x = 1 -> Prop.
+*)
 
 (* não estou conseguindo executar o theorem abaixo *) 
 Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3.
@@ -1971,6 +1986,7 @@ casos. *)
     generalize  dependent b.
     induction H2.
     + exists (t1 ^^ u); split.
+(*A prova parou aqui*)
       * apply reflex.
       * apply atleast1.
         apply redex.

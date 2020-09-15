@@ -1791,22 +1791,41 @@ apresentar logo abaixo os nossos avanços e apresentar quais os próximo passos 
 
 
  Para realizar a prova do strip\_lemma iremos considerar os termos t, t1 e t2. Porém, para isso, iremos
-considerar que o termo t possui em sua composição o seguinte redex: pterm\_app (pterm\_labs Q) P, e apenas (verificar) 
-iremos levar em conta este redex marcado para construir as nossas operações. Dessa forma devemos considerar o seguinte:
-t1 é o termo obtido ao aplicar uma beta redução marcada em t, e reduzir especificamente o redex marcado apresentado.
-Nesse caso, portanto, aplicando phi(t) temos t1. Ou seja:
+considerar que o termo t possui em sua composição o seguinte redex: pterm\_app (pterm\_labs Q) P, e apenas
+iremos levar em conta este redex marcado para construir as nossas operações. Ou seja, o termo deverá conter apenas
+um redex marcado, para podermos acompanhar o seu estado ao longo das operações de prova que serão realizadas.
+Dessa forma devemos considerar o seguinte: t1 é o termo obtido ao aplicar uma beta redução marcada em t, 
+e reduzir especificamente o redex marcado apresentado. Nesse caso, portanto, aplicando phi(t) temos t1. Ou seja:
 
  $ phi(t) = t1 $ 
 
- E dessa forma, podemos dizer que existe um termo t' cuja erase(t) = t', e t' ->B t1. (Parece
-que inverti a explicacao, na verdade o que vem primeiro é t' assim t' aqui deveria ser empregado como
-t). Dessa forma podemos reduzir t' para t2 via n reduções beta, e provar que t1 tabém reduz para 
-t2 via n beta reduções. \begin{coqdoccode}
+ Com isso, podemos dizer que existe um termo t' cuja erase(t) = t', e t' ->B t1. Assim
+podemos reduzir t' para t2 via n reduções beta, e provar que t1 tabém reduz para t2 via n beta reduções. O que está sendo 
+realizado neste caso é a manutenção de um redex marcado, após n beta reduções quaisquer, que não ocorrem no redex marcado. 
+Em seguida o erase e a função phi são utilizados para demonstrar que os termos convergem em t2. Como esses termos são quaisquer
+e a única característica com a qual estamos trabalhando é a marca, então a prova pode ser generalizada para qualquer caso.
+
+ Exemplificando um pouco melhor, uma espécie de contador, como o abaixo poderia ser utilizado para se certificar de que
+o termo que está sendo trabalhado é um termo com apenas um redex marcado. Este é um dos caminhos de prova com o qual estamos
+trabalhando no projeto.\begin{coqdoccode}
 \coqdocemptyline
-\end{coqdoccode}
-O que está sendo realizado neste caso é a manutenção de um redex marcado, após n beta reduções quaisquer,
-que não ocorrem no redex marcado. Em seguida o erase e a função phi são utilizados para demonstrar que os termos convergem
-em t2.\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Fixpoint} \coqdocvar{lredex\_count} (\coqdocvar{t}:\coqdocvar{pterm}):(\coqdocvar{nat}) :=\coqdoceol
+\coqdocnoindent
+\coqdockw{match} \coqdocvar{t} \coqdockw{with}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_bvar} \coqdocvar{i} \ensuremath{\Rightarrow} 0\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_fvar} \coqdocvar{x} \ensuremath{\Rightarrow} 0\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2} \ensuremath{\Rightarrow} (\coqdocvar{lredex\_count} \coqdocvar{t1}) + (\coqdocvar{lredex\_count} \coqdocvar{t2})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_abs} \coqdocvar{t1}    \ensuremath{\Rightarrow} (\coqdocvar{lredex\_count} \coqdocvar{t1})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{pterm\_labs} \coqdocvar{t1}   \ensuremath{\Rightarrow} 1 + (\coqdocvar{lredex\_count} \coqdocvar{t1})\coqdoceol
+\coqdocnoindent
+\coqdockw{end}.\coqdoceol
+\coqdocemptyline
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Theorem} \coqdocvar{strip\_lemma}: \coqdockw{\ensuremath{\forall}}  \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t} -->\coqdocvar{B} \coqdocvar{t1} \ensuremath{\rightarrow} \coqdocvar{t} -->>\coqdocvar{B} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdoctac{\ensuremath{\exists}} \coqdocvar{t3}, \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t3} \ensuremath{\land} \coqdocvar{t2} -->>\coqdocvar{B} \coqdocvar{t3}.\coqdoceol
