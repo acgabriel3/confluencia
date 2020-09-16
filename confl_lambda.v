@@ -37,7 +37,7 @@ para representar variáveis ligadas, e variáveis nomeadas para representar vari
 forma podemos ter um conjunto de símbolos nesta notação que não sejam válidos semanticamente. 
 Vamos exemplificar: 
 
-Data a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
+Dada a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
 que apresentamos. O index 0 neste caso indica que existem 0 passos para em uma aplicação
 substituir a variável ligada que o mesmo representa, estando esse index portanto ligado
 diretamente à abstração apresentada, e sendo dessa maneira válido semanticamento. Porém,
@@ -220,7 +220,7 @@ Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   | pterm_labs t1    => pterm_labs (open_rec (S k) u t1)
   end.
 
-(** Esta operação é responsável por substituis todos os índices "k", por uma variável com
+(** Esta operação é responsável por substituir todos os índices "k", por uma variável com
 nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, assim, ao aplicar
 a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.*)
 
@@ -231,7 +231,7 @@ como "open", onde u é o nome de uma variável qualquer e t é um pré-termo ,lo
 Definition open t u := open_rec 0 u t.
 
 (** Esta definição será extremamente útil nas provas mais abaixo, devido à maior facilidade com relação
-à trabalhar com qualquer index k.*)
+à trabalhar com qualquer index k, e para garantir que estamos trabalhando com termos válidos.*)
 
 (** De qualquer forma, a operação como explicada mais acima, onde k é o index de De Bruijin,
 u o nome de uma variável qualquer e t o pré-termo que será aberto recursivamente no index k é 
@@ -349,14 +349,21 @@ Admitted. *)
 
 (* a regra abaixo foi utilizada?*)
 
-(** *Definições características *)
+(** * Definições técnicas e explanação teórica *)
 
-(** Para ajudar nas diversas abordagens de prova que serão utilizadas, podemos definir
-algumas propriedades. Em provas indutivas no tamanho da estrutura sintática, precisamos 
-definir o conceito de tamanho do termo. Esta definição é dada abaixo, dando o valor de 1
-para variáveis livres (pterm_fvar x) e variáveis ligadas (pterm_bvar i) e contando recursivamente
-a partir das estruturas mais complexas do termo, tal como a aplicação, a abstração e a abstração
-marcada: *)
+(** Para auxiliar nas provas são necessárias algumas definições no assistente de provas. Existem casos em que é melhor
+seguir uma prova por indução na estrutura, nestes casos, o assistente consegue lidar bem com seus pŕoprios comandos. No entanto,
+quando precisamos trabalhar com provas no tamanho dos termos, muitas vezes são necessárias definições para contar o tamanho do
+tipo que estamos lidando. E posteriormente, essas definições são utilizadas para definir induções no tamanho específicas para o 
+domínio em que estamos trabalhando. Não vamos apresentar estas definições neste trabalho, por serem muito técnicas e poderem
+ser facilmente encontradas em outros trabalhos da literatura (possivelmente citar trabalhos aqui). *)
+
+(** No trabalho de \cite{Chargerout} (concertar citação) e na notação de nomes locais é necessária a definição de operações de
+abertura e fechamento dos termos. As operações de abertura e fechamento manipulam os index's e nomes, e têm como objetivo controlar
+e tornar possível a decisão de se um termo é ou não fechado, ou seja, possui uma sintaxe válida. Não iremos mostrar essas definições
+neste trabalho, pois as mesmas podem ser encontradas no próprio trabalho de \cite{Chargerout} (concertar citação), mas estas definições
+foram utilizadas e exploradas neste trabalho. *)
+
 (* begin hide *)
 Fixpoint pterm_size (t : pterm) : nat :=
  match t with
@@ -1400,6 +1407,8 @@ Proof.
       * assumption.
 Qed.    
 
+(** A beta redução do cálculo lambda é a reduçao de um redex... Explicar as definições mais abaixo...*)
+
 Inductive rule_b : Rel pterm  :=
   reg_rule_b : forall (t u:pterm), body t -> term u ->
     rule_b (pterm_app(pterm_abs t) u) (t ^^ u).
@@ -1988,12 +1997,12 @@ o sucesso em realizar esta prova provavelmente depende um caminho intermediário
 caminho da criação de diversos lemas auxiliares, como vamos explanar mais abaixo. Mas, em vistas de ilustrar uma opção de prova 
 diferente, apresentamos abaixo uma definição menos genralizada para o teorema como exemplo: *)
 
-  (** $$ Theorem strip_lemma: forall  lterm_one t', term t t1 t2, erase(t') = t -> phi(t') = t1 ->
-t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3. $$ *)
+  (** $ Theorem strip_lemma: forall  lterm_one t', term t t1 t2, erase(t') = t -> phi(t') = t1 ->
+t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3. $ *)
 
   (** Onde lterm_one é a definição de um termo marcado qualquer, que possui apenas uma marca. t' é um termo com as mesmas propriedades
-estruturais de t, exceto pelo redex marcado, sendo isto definido pela igualdade $$ erase(t') = t $$ e t1 é o termo cuja estrutura
-reduz de t com uma beta redução no redex marcado, o que é nesse caso definido pela igualdade $$ phi(t') = t1 $$. Assim, como t é um
+estruturais de t, exceto pelo redex marcado, sendo isto definido pela igualdade $ erase(t') = t $ e t1 é o termo cuja estrutura
+reduz de t com uma beta redução no redex marcado, o que é nesse caso definido pela igualdade $ phi(t') = t1 $. Assim, como t é um
 termo qualquer com ao menos um redex, a prova é suficiente para o strip_lemma. Lembramos que essa pode não ser a melhor abordagem para
 um assistente de provas, mas exemplifica muito bem o que \cite{barendregt} (melhorar citação) fez em sua prova, podendo ser tomado como base para o sucesso
 na formalização dessa prova. *)
