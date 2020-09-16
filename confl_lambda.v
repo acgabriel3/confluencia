@@ -1972,14 +1972,46 @@ Fixpoint oneredex (t:pterm): Set :=
 *)
 
 (* não estou conseguindo executar o theorem abaixo *) 
+
+
+  (** A prova será realizada por meio da indução na estrutura da beta redução de t para t1. Assim chegamos a quatro
+casos. Estes casos são relativos à própria estrutura da beta redução de t para t1. Ao provar os passos anteriores, 
+a prova se completa por indução para o caso geral. No entanto, a definição atual do strip_lemma
+está muito generalizada, não havendo, por exemplo, um termo marcado definido com apenas uma marca que possa ser acompanhada
+durante a prova. Nesse caso, vamos utilizar a notação de nomes locais sem marcas e o trabalho de \cite{chatgerout} (citar certo)
+para nos ajudar a completar a prova mesmo de maneira generalizada, mas também apresentamos opções ilustrativas mais abaixo.   *)
+
+  (** Dado esse contexto, dois caminhos podem ser seguidos: No primeiro, a definição do teorema poderia ser refeita, de uma
+maneira menos generalizada, abarcando as marcas e utilizando alguma ideia semelhante à apresentada na função lredex_count. O segundo 
+caminho, seria a construção de diversos lemas auxiliares que permitiriam com que o teorema geral pudesse ser provado. Na realidade
+o sucesso em realizar esta prova provavelmente depende um caminho intermediário entre essas duas opções. Atualmente, seguimos o
+caminho da criação de diversos lemas auxiliares, como vamos explanar mais abaixo. Mas, em vistas de ilustrar uma opção de prova 
+diferente, apresentamos abaixo uma definição menos genralizada para o teorema como exemplo: *)
+
+  (** $$ Theorem strip_lemma: forall  lterm_one t', term t t1 t2, erase(t') = t -> phi(t') = t1 ->
+t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3. $$ *)
+
+  (** Onde lterm_one é a definição de um termo marcado qualquer, que possui apenas uma marca. t' é um termo com as mesmas propriedades
+estruturais de t, exceto pelo redex marcado, sendo isto definido pela igualdade $$ erase(t') = t $$ e t1 é o termo cuja estrutura
+reduz de t com uma beta redução no redex marcado, o que é nesse caso definido pela igualdade $$ phi(t') = t1 $$. Assim, como t é um
+termo qualquer com ao menos um redex, a prova é suficiente para o strip_lemma. Lembramos que essa pode não ser a melhor abordagem para
+um assistente de provas, mas exemplifica muito bem o que \cite{barendregt} (melhorar citação) fez em sua prova, podendo ser tomado como base para o sucesso
+na formalização dessa prova. *)
+
+(** *** Prova formal do strip_lemma, com a definição generalizada *)
+
 Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3.
 Proof.
   intros t t1 t2 H1 H2.
-  
-  (** A prova será realizada por meio da indução na estrutura da beta redução de t para t1. Assim chegamos a quatro
-casos. *)
+
+  (** Iniciamos com a indução na estrutura da beta redução em um passo (de t para t1 na notação utilizada):*)
 
   induction H1.
+
+  (** A prova se divide em 4 ramos, e podemos perceber que nenhum deles é um caso simples. Os detalhes das operações de prova mais
+abaixo são irrelevantes para os objetivos deste relatório, e por isso não serão apresentados. Incentivamos que as operações sejam
+copiadas, caso haja o interesse em continuar a prova deste ponto de partida.*)
+
   - inversion H; subst.
     apply refltrans_equiv in H2.
     remember (t1 ^^ u) as b.
@@ -2008,6 +2040,12 @@ casos. *)
       
 
       
+    (** A definição do lemma erase_lbeta_2313 trabalha com a equivalência, dados termos de mesma estrutura porém dois com
+marcas e dois sem marcas, da redução destes pares de termos pelas beta reduções marcadas e não marcadas. Essa definição é
+necessária para trabalhar com a marca e a acompanhar de modo a ser possível enxergar os estados da estrutura com a qual estamos
+trabalhando. *)
+
+
     Lemma erase_lbeta_2313: forall t1 t2, t1 -->>B t2 -> forall t1' t2', erase(t1') = t1 /\ erase(t2') = t2 -> t1' -->>lB t2'.
     Proof.
       Admitted.
