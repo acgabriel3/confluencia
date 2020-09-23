@@ -510,6 +510,21 @@ Proof.
 Qed.
 (* end hide *)
 
+(** Existe outra maneira de saber se um pré-termo é localmente fechado. ALém do uso do open, 
+podemos definir um tipo recursivo chamado "lc_at". A ideia é trabalhar com os index's de modo
+a verificar se todos possuem ligação com uma abstrção, e caso sim, o termo será um termo fechado.
+Ser um termo fechado, como já dito, significa ser um termo válido para o $\lambda$-cálculo. A comparação
+realizada para os index-s refere-se a se estes são menores do que um valor k, ligado ao número de 
+abstrações. *)
+
+(** Para um termo ser realmente localmente fechado segundo essa definição, ele precisa ser lc_at 0, 
+ou seja, ele não pode conter nenhum index sem ligações válidas com abstrações. Entendemos melhor essa
+propriedade ao analisar a definição recursiva do lc_at. Toda variável livre é localmente fechada. A medida
+que um termo será localmente fechado para uma aplicação, se seus dois subtermos também foram localmente fechados.
+E para uma abstração, o será se o termo envolvido pela abstração for localmente fechado para k + 1.
+Para a variável ligada, portanto, o termo será localmente fechado caso o index i que representa a variável
+ligada seja menor do que k. Veja a definição abaixo: *)
+
 Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   match t with
   | pterm_bvar i    => i < k
@@ -518,6 +533,10 @@ Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
   | pterm_abs t1    => lc_at (S k) t1
   | pterm_labs t1    => lc_at (S k) t1
   end.
+
+(** O lc_at pode ser usado em diversos teoremas matemáticos relacionados tanto ao open, quanto
+à definição de termos. Esses teoremas podem facilitar provas com nível de abstração mais elevado
+na teoria do cálculo lambda, permitindo a equivalência entre diferentes tipos e propriedades.*)
 
 (* talvez *)
 Lemma lc_at_open_rec_rename: forall t x y m n, lc_at m (open_rec n (pterm_fvar x) t) -> lc_at m (open_rec n (pterm_fvar y) t).
