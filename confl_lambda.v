@@ -540,6 +540,7 @@ na teoria do cálculo lambda, permitindo a equivalência entre diferentes tipos 
 
 (* talvez *)
 Lemma lc_at_open_rec_rename: forall t x y m n, lc_at m (open_rec n (pterm_fvar x) t) -> lc_at m (open_rec n (pterm_fvar y) t).
+(* begin hide *)
 Proof.
   intro t; induction t.
   - intros x y m n0.
@@ -565,9 +566,12 @@ Proof.
     intro H.
     apply IHt with x; assumption.
 Qed.
+(* end hide *)
+
 
 (* talvez *)
 Lemma lc_at_weaken: forall t n m, n <= m -> lc_at n t -> lc_at m t.
+(* begin hide *)
 Proof.
   intro t; induction t.
   - intros n' m Hleq.
@@ -594,9 +598,12 @@ Proof.
     + apply le_n_S; assumption.
     + assumption.
 Qed.
+(* end hide *)
+
 
 (* talvez *)
 Lemma lc_at_open: forall t m x, lc_at m ({m ~> pterm_fvar x} t) <-> lc_at (S m) t.
+(* begin hide *)
 Proof.
   intros t m x; split.
   - generalize dependent x.
@@ -660,9 +667,10 @@ Proof.
       simpl.
       apply IHt; assumption.
 Qed.
-
+(* end hide *)
 
 Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
+(* begin hide *)
 Proof.
   intros t Hterm.
   induction Hterm.
@@ -678,6 +686,7 @@ Proof.
     apply lc_at_open in Fr.
     assumption.
 Qed.
+(* end hide *)
 
 (* contra-exemplo: pterm_labs 0
 Lemma lc_at_to_term : forall t, lc_at 0 t -> term t.
@@ -707,6 +716,7 @@ Proof.
 Admitted. *)
   
 Lemma lterm_to_lc_at : forall t, lterm t -> lc_at 0 t.
+(* begin hide *)
 Proof.
   intros t Hterm.
   induction Hterm.
@@ -731,6 +741,7 @@ Proof.
     assumption.
     + assumption.
 Qed.
+(* end hide *)
 
 (* Como resolver o problema abaixo?
 Theorem : forall v:nat, term (pterm_fvar v) -> lc_at 0 (pterm_fvar v).
@@ -803,10 +814,12 @@ Qed.
 (* end hide *)
 
 Lemma term_rename: forall t x y, term (t ^ x) -> term (t ^ y).
+(* begin hide *)
 Proof.
   intros t x y Hterm.
   apply term_to_lc_at in Hterm.
   Admitted.
+(* end hide *)
 (*  apply term_equiv_lc_at.
   apply lc_at_open_rec_rename with x.
   assumption.
@@ -840,12 +853,14 @@ Qed. *)
     admit.
   - admit.
 Admitted. *)
-
 Lemma ind_max: forall t u n, term ({n ~> u}t) -> ~ (has_free_index (S n) t).
+(* begin hide *)
 Proof.
 Admitted.
+(* end hide *)
 
 Lemma body_not_S: forall t n, body t -> not (has_free_index (S n) t).
+(* begin hide *)
 Proof.
   intros t0 n H1; induction t0.
   - unfold body in H1.
@@ -916,8 +931,10 @@ Proof.
     replace ({0 ~> pterm_fvar z} ({1 ~> pterm_fvar x} t0)) with ({1 ~> pterm_fvar x} ({0 ~> pterm_fvar z} t0)) in HL0.
     + apply ind_max in HL0.
 Admitted.
+(* end hide *)
 
 Lemma open_rec_close_rec_term: forall t u k, ~(has_free_index k t) -> open_rec k u t = t.
+(* begin hide *)
 Proof.
   intro t; induction t.
   - intros u k H1.
@@ -931,13 +948,16 @@ Proof.
     reflexivity.
   - intros u k H1.
 Admitted.
+(* end hide *)
 
 Lemma subst_body: forall t u n, body t -> {S n ~> u} t = t.
+(* begin hide *)
 Proof.
   intros t u n Hbody.
   apply open_rec_close_rec_term.
   apply body_not_S; assumption.
 Qed.  
+(* end hide *)
   (*  intros t0 u n Hbody.
   unfold body in Hbody.
   destruct Hbody as [L].
@@ -1028,6 +1048,7 @@ Admitted.
 *)
   
 Lemma subst_term: forall t u n, term t -> {n ~> u} t = t.
+(* begin hide *)
 Proof.
   intros t u n H.
   generalize dependent n.
@@ -1049,8 +1070,10 @@ Proof.
       exists L.
       assumption.
 Qed.
+(* end hide *)
 
 Lemma subst_lterm: forall t u n, lterm t -> {n ~> u} t = t.
+(* begin hide *)
 Proof.
   intros t u n H.
   generalize dependent n.
@@ -1063,20 +1086,26 @@ Proof.
     simpl.
     f_equal.
 Admitted.
-    
+(* end hide *)    
+
 Lemma abs_body: forall t1 t2 L, (forall x, x \notin L -> t1^x = t2^x) -> pterm_abs t1 = pterm_abs t2.
+(* begin hide *)
 Proof.
   intro t1; induction t1.
   - intro t2; induction t2.
     + intros L H.
       unfold open in H.
       Admitted.
+(* emd hide *)
 
 Lemma subst_open: forall t u x n,  ({S n ~> u} t) ^ x = {S n ~> (u ^ x)} (t ^ x). 
+(* begin hide *)
 Proof.
   Admitted.
+(* end hide *)
   
 Lemma subst_term': forall t, (forall u n, term t -> {n ~> u} t = t).
+(* begin hide *)
 Proof.
   assert (Hind := term_ind (fun t => forall u n, term t -> {n ~> u} t = t)).
   intro t; apply Hind.
@@ -1101,8 +1130,10 @@ Proof.
     assert (IHt1' := (IHt1 x)).
     apply IHt1.
 Admitted.
+(* end hide *)
 
 Lemma subst_lemma_lterms: forall (t1 t2 t3: pterm) (i j:nat), lterm t2 -> lterm t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> t2} ({j ~> t3} t1).
+(* begin hide *)
 Proof.
   intro t1; induction t1.
   - intros t2 t3 i j H2 H3 Hle.
@@ -1112,6 +1143,7 @@ Proof.
       * symmetry in e.
         contradiction.
       * Admitted.
+(* end hide *)
 
 (*    
 Lemma subst_lemma_lterms: forall (t1 t2 t3: pterm) (i j:nat), lterm t3 -> i <= j -> {j ~> t3} ({i ~> t2} t1) = {i ~> {j ~> t3} t2} ({S j ~> t3} t1).
@@ -1380,6 +1412,7 @@ Fixpoint unerase (t:pterm) : pterm :=
  *)
 
 Lemma erase_idemp: forall a, erase (erase a) = erase a.
+(* begin hide *)
 Proof.
   induction a.
   - reflexivity.
@@ -1393,6 +1426,7 @@ Proof.
   - simpl.
     rewrite IHa; reflexivity.
 Qed.
+(* end hide *)
     
 Inductive refltrans (red: Rel pterm) : Rel pterm :=
 | reflex: forall a, refltrans red a a
@@ -1404,6 +1438,7 @@ Inductive refltrans' (red: Rel pterm) : Rel pterm :=
 | rtrans': forall a b c, red a b -> refltrans' red b c -> refltrans' red a c.
 
 Lemma refltrans_equiv: forall (R: Rel pterm) (a b: pterm), refltrans R a b <-> refltrans' R a b.
+(* begin hide *)
 Proof.
   intros R a b; split.
   - intro H.
@@ -1425,6 +1460,7 @@ Proof.
       * apply atleast1; assumption.
       * assumption.
 Qed.    
+(* end hide *)
 
 (** A beta redução do cálculo lambda é a reduçao de um redex... Explicar as definições mais abaixo...*)
 
@@ -1466,6 +1502,7 @@ Fixpoint phi (t:pterm) : pterm :=
 
 (* Precisamos de um lema entre phi e open. *)  
 Lemma phi_open_rec_fvar: forall t n x, phi(open_rec n (pterm_fvar x) t) = open_rec n (pterm_fvar x) (phi t).
+(* begin hide *)
 Proof.  
   intro t; induction t.
   - intros n' x.
@@ -1524,17 +1561,21 @@ Proof.
         inversion IHt1'. clear IHt1'.
         rewrite H0.
         Admitted.
+(* end hide *)
 
 Corollary phi_open: forall t x, phi(t^x) = (phi t)^x.
+(* begin hide *)
 Proof.
   intros t x.
   unfold open.
   Admitted.
+(* end hide *)
   (* apply phi_open_rec.
 Qed.
    *)
   
 Lemma phi_term: forall t, lterm t -> term (phi t).
+(* begin hide *)
 Proof.
   intros t Hlterm.
   induction Hlterm.
@@ -1566,12 +1607,16 @@ Proof.
     admit.
   - simpl.
 Admitted.
+(* end hide *)
 
 Lemma term_fvar_to_term: forall t1 t2 t3 x, term (phi (pterm_app t1 t2)^x) -> term t3 -> term (phi (pterm_app t1 t2)^^t3). 
+(* begin hide *)
 Proof.
 Admitted.  
+(* end hide *)
 
 Lemma term_phi_open: forall t1 t2 x L,  x \notin L -> term (phi (t1 ^ x)) -> term (phi t2) -> term (phi t1 ^^ phi t2).
+(* begin hide *)
 Proof.
   intro t; induction t.
   - intros t2 x L HL Hterm1 Hterm2.
@@ -1594,6 +1639,7 @@ Proof.
     assert(teste := IHt t2 x L HL).
     admit.  Gabriel *)
 Admitted.
+(* end hide *)
   (*
   intro t; induction t.
   - intro H; inversion H.
@@ -1655,6 +1701,7 @@ Qed.
  *)
 
 Lemma lterm_preserves_fvar : forall M x, erase M = (pterm_fvar x) -> M = (pterm_fvar x).
+(* begin hide *)
 Proof.
   induction M.
   - intros x H.
@@ -1672,29 +1719,39 @@ Proof.
     simpl in H.
     inversion H.
 Qed.
+(* end hide *)
 
 Lemma lterm_preserves_bvar : forall M n, erase M = (pterm_bvar n) -> M = (pterm_bvar n).
+(* begin hide *)
 Proof.
   Admitted.
+(* end hide *)
 
 Lemma lterm_preserves_app : forall M N L, erase M = (pterm_app N L) -> exists N' L', M = (pterm_app N' L').
+(* begin hide *)
 Proof.
 (*
   exists (erase N).
   exists (erase L). *)
   Admitted.
+(* end hide *)
 
 Lemma lterm_preserves_abs : forall M N, erase M = (pterm_abs N) -> exists N', M = (pterm_abs N') \/ M = (pterm_labs N').
+(* begin hide *)
 Proof.
 Admitted.
+(* end hide *)
 
 Lemma open_rec_preserves_labs: forall t u k, (open_rec k u (pterm_labs t)) = (pterm_labs (open_rec (S k) u t)).
+(* begin hide *)
 Proof.
   intros t u k .
   reflexivity.
 Qed.
+(* end hide *)
   
 Lemma erase_open_rec : forall (M N: pterm) (k : nat), erase ({k ~> N} M) = {k ~> (erase N)} (erase M).
+(* begin hide *)
 Proof.
   induction M.
   - intros N K.
@@ -1718,15 +1775,19 @@ Proof.
     f_equal.
     apply IHM.
 Qed.
+(* end hide *)
 
 Corollary erase_open : forall M N: pterm, erase (M ^^ N) = (erase M) ^^ (erase N).
+(* begin hide *)
 Proof.
   unfold open.
   intros M N.
   apply  erase_open_rec.
 Qed.
+(* end hide *)
 
 Lemma phi_subst_rec: forall (M N: pterm) (k: nat), term N -> phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
+(* begin hide *)
 Proof.
   induction M.
   - intros N k.
@@ -1785,16 +1846,21 @@ Proof.
   (*   f_equal. *)
   (*   apply IHM. *)
 Admitted.    
+(* end hide *)
 
 Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
+(* begin hide *)
 Proof.
   Admitted.
+(* end hide *)
 
 Lemma phi_prop: forall M N : pterm, lterm M -> lterm N -> (M -->>lB N) -> (phi M) -->>B (phi N).
+(* begin hide *)
 Proof.
   intros M N Hterm1 Hterm2 H.
   induction H.
   - Admitted.
+(* end hide *)
 
   
 (*                                       
@@ -1822,10 +1888,13 @@ Proof.
  *)
 
 Lemma erase_prop_str: forall M' M N , pterm_app (pterm_abs M) N = erase M' -> exists u v, erase u = M -> erase v = N -> (M' = pterm_app (pterm_labs u) v) \/ (M' = pterm_app (pterm_abs u) v).
+(* begin hide *)
 Proof.
 Admitted.
+(* end hide *)
 
 Lemma erase_prop1 : forall M N: pterm, term M -> term N -> (M -->B N) -> forall M' N', (erase M' = M) /\ (erase N' = N) ->  (M' -->lB N').
+(* begin hide *)
 Proof.
   intros M N HtM HtN Hred.
   
@@ -1845,8 +1914,10 @@ Proof.
     + admit. (* ok *)
     + assumption.
     + Admitted.*)
+(* end hide *)
 
 Lemma erase_prop : forall M N M' N': pterm, term M -> term N -> (M -->>B N) -> erase M' = M -> erase N' = N ->  (M' -->>lB N').
+(* begin hide *)
 Proof.
   intros M N M' N' HtM HtN Hred HeM HeN.
   induction Hred.
@@ -1869,14 +1940,18 @@ Lemma erase_lbeta_2313: forall t1 t2, t1 -->>B t2 -> (forall t1', erase(t1') = t
 Proof.
 Admitted.
 *)
+(* end hide *)
 
 Lemma phi_preserves_term: forall t, term t -> term (phi t).
+(* begin hide *)
 Proof.
   intros t H.
   induction H.
   Admitted.
+(* end hide *)
   
 Lemma beta_phi_one_step: forall t1 t2, t1 -->lB t2 -> phi(t1) -->B phi(t2).
+(* begin hide *)
 Proof.
   intros t1 t2 H.
   induction H.
@@ -1888,8 +1963,10 @@ Proof.
       * admit.        
       * apply phi_preserves_term; assumption.
     + Admitted.
-  
+(* end hide *)  
+
 Lemma beta_phi: forall t1 t2, t1 -->>lB t2 -> phi(t1) -->>B phi(t2).
+(* begin hide *)
 Proof.
   intros t1 t2 H.
   induction H.
@@ -1897,8 +1974,10 @@ Proof.
   - apply beta_phi_one_step in H.
     apply atleast1; assumption.
   - Admitted.
+(* end hide *)
 
 Lemma erase_phi: forall t t1 t2, erase(t) = t1 -> phi(t) = t2 -> t1 -->>B t2.
+(* begin hide *)
 Proof.
   (*intros t0 t1 t2 Herase Hphi.
   induction t0.
@@ -1927,14 +2006,19 @@ Proof.
     apply reflex.
   - 
   Admitted.
+(* end hide *)
 
 Lemma term_erase: forall t, term t -> erase(t) = t.
+(* begin hide *)
 Proof.
   Admitted.
+(* end hide *)
 
 Lemma body_erase: forall t, body t -> erase(t) = t.
+(* begin hide *)
 Proof.
   Admitted.
+(* end hide *)
 
 (* begin hide *)
   (* esconde código *)
