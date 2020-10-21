@@ -263,25 +263,65 @@ ligada seja menor do que k. Veja a definição abaixo: \begin{coqdoccode}
 \end{coqdoccode}
 O lc\_at pode ser usado em diversos teoremas matemáticos relacionados tanto ao open, quanto
 à definição de termos. Esses teoremas podem facilitar provas com nível de abstração mais elevado
-na teoria do cálculo lambda, permitindo a equivalência entre diferentes tipos e propriedades.\begin{coqdoccode}
+na teoria do cálculo lambda, permitindo a equivalência entre diferentes tipos e propriedades.
+
+\section{Propriedades importantes do cálculo lambda e suas provas}
+
+\begin{coqdoccode}
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+Precisamos definir e provar diversas propriedades do cálculo lambda que irão ser muito úteis
+para a construção das provas de confluência que estamos construindo. Nesse sentido, muitas das propriedades
+que poderiam parecer simples de provar, no assistente de provas essa tarefa torna-se muitas vezes muito
+mais complicada. 
+
+ Uma das propriedades mais interessantes da notação sem nomes locais que empregamos é que ela não necessita da alfa conversão,
+facilitando e tornando decidíveis para a máquina diversas operações que antes não o seriam. Podemos
+provar essa propriedade por meio da definição de lc\_at, como se segue no lema abaixo, onde sua prova no coq segue de maneira trivial. Neste
+lema mostramos que se dois nomes são utilizados como variáveis livres em uma estrutura análoga, então eles são localmente fechados em um nível m.  \begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{lc\_at\_open\_rec\_rename}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{x} \coqdocvar{y} \coqdocvar{m} \coqdocvar{n}, \coqdocvar{lc\_at} \coqdocvar{m} (\coqdocvar{open\_rec} \coqdocvar{n} (\coqdocvar{pterm\_fvar} \coqdocvar{x}) \coqdocvar{t}) \ensuremath{\rightarrow} \coqdocvar{lc\_at} \coqdocvar{m} (\coqdocvar{open\_rec} \coqdocvar{n} (\coqdocvar{pterm\_fvar} \coqdocvar{y}) \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+Outra propriedade importante é o fato de que se um pré-termo é localmente fechado no nível n, então ele também é localmente fechado
+para qualquer nível maior do que n. Esta propriedade pode ser provada segundo a definição do lema abaixo, e sua prova no coq é trivial.\begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{lc\_at\_weaken}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{n} \coqdocvar{m}, \coqdocvar{n} \ensuremath{\le} \coqdocvar{m} \ensuremath{\rightarrow} \coqdocvar{lc\_at} \coqdocvar{n} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{lc\_at} \coqdocvar{m} \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+É importante demonstrar também a relação de sucessor com relação à termos localmente fechados e abertos com open. Nesse caso,
+se um pré-termo é localmente fechado em m e é aberto em m com a variável livre qualquer x, então ele continuará localmente fechado para
+m + 1. A prova desta propriedade é um pouco mais complexa, mas pode ser realizada com um pouco de esforço no coq.\begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{lc\_at\_open}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{m} \coqdocvar{x}, \coqdocvar{lc\_at} \coqdocvar{m} (\{\coqdocvar{m} \~{}> \coqdocvar{pterm\_fvar} \coqdocvar{x}\} \coqdocvar{t}) \ensuremath{\leftrightarrow} \coqdocvar{lc\_at} (\coqdocvar{S} \coqdocvar{m}) \coqdocvar{t}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Assim, também somos capazes de provar uma das propriedades que já havíamos citado acima, a de que um termo é um pré-termo
+fechado para o index 0. Essa conversão pode permitir trabalhar a definição de lc\_at ao invés de term, quando essa for mais conveniente. A
+prova para esse teorema é simples, mas necessita da prova do lema lc\_at\_open para ser concluída.\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{term\_to\_lc\_at} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{term} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{lc\_at} 0 \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
 \coqdocemptyline
+\end{coqdoccode}
+O mesmo segue para o termo marcado, por definição. \begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{lterm\_to\_lc\_at} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{lterm} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{lc\_at} 0 \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
 \coqdocemptyline
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+Muitas vezes pode ser importante considerar se um pré-termo possui um index livre. Isto para checar
+por exemplo, se há a possibilidade de uma redução de uma abstração. Isso pode ser realizado por meio da definição abaixo?\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Fixpoint} \coqdocvar{has\_free\_index} (\coqdocvar{k}:\coqdocvar{nat}) (\coqdocvar{t}:\coqdocvar{pterm}) : \coqdockw{Prop} :=\coqdoceol
@@ -300,6 +340,10 @@ na teoria do cálculo lambda, permitindo a equivalência entre diferentes tipos 
 \coqdocindent{1.00em}
 \coqdockw{end}.\coqdoceol
 \coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+Respeitando a questão da alfa conversão, podemos demonstrar que se um pre-termo recebe uma substituição pela variável livre x, 
+ então ao receber de uma outra variável qualquer y uma substituição, este pré-termo continuaria sendo um termo.\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{term\_rename}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{x} \coqdocvar{y}, \coqdocvar{term} (\coqdocvar{t} \^{} \coqdocvar{x}) \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{t} \^{} \coqdocvar{y}).\coqdoceol

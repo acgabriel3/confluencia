@@ -538,7 +538,20 @@ Fixpoint lc_at (k:nat) (t:pterm) : Prop :=
 à definição de termos. Esses teoremas podem facilitar provas com nível de abstração mais elevado
 na teoria do cálculo lambda, permitindo a equivalência entre diferentes tipos e propriedades.*)
 
+(** * Propriedades importantes do cálculo lambda e suas provas *)
+
 (* talvez *)
+
+(** Precisamos definir e provar diversas propriedades do cálculo lambda que irão ser muito úteis
+para a construção das provas de confluência que estamos construindo. Nesse sentido, muitas das propriedades
+que poderiam parecer simples de provar, no assistente de provas essa tarefa torna-se muitas vezes muito
+mais complicada. *)
+
+(** Uma das propriedades mais interessantes da notação sem nomes locais que empregamos é que ela não necessita da alfa conversão,
+facilitando e tornando decidíveis para a máquina diversas operações que antes não o seriam. Podemos
+provar essa propriedade por meio da definição de lc_at, como se segue no lema abaixo, onde sua prova no coq segue de maneira trivial. Neste
+lema mostramos que se dois nomes são utilizados como variáveis livres em uma estrutura análoga, então eles são localmente fechados em um nível m.  *)
+
 Lemma lc_at_open_rec_rename: forall t x y m n, lc_at m (open_rec n (pterm_fvar x) t) -> lc_at m (open_rec n (pterm_fvar y) t).
 (* begin hide *)
 Proof.
@@ -570,6 +583,10 @@ Qed.
 
 
 (* talvez *)
+
+(** Outra propriedade importante é o fato de que se um pré-termo é localmente fechado no nível n, então ele também é localmente fechado
+para qualquer nível maior do que n. Esta propriedade pode ser provada segundo a definição do lema abaixo, e sua prova no coq é trivial.*)
+
 Lemma lc_at_weaken: forall t n m, n <= m -> lc_at n t -> lc_at m t.
 (* begin hide *)
 Proof.
@@ -602,6 +619,11 @@ Qed.
 
 
 (* talvez *)
+
+(** É importante demonstrar também a relação de sucessor com relação à termos localmente fechados e abertos com open. Nesse caso,
+se um pré-termo é localmente fechado em m e é aberto em m com a variável livre qualquer x, então ele continuará localmente fechado para
+m + 1. A prova desta propriedade é um pouco mais complexa, mas pode ser realizada com um pouco de esforço no coq.*)
+
 Lemma lc_at_open: forall t m x, lc_at m ({m ~> pterm_fvar x} t) <-> lc_at (S m) t.
 (* begin hide *)
 Proof.
@@ -669,6 +691,10 @@ Proof.
 Qed.
 (* end hide *)
 
+(** Assim, também somos capazes de provar uma das propriedades que já havíamos citado acima, a de que um termo é um pré-termo
+fechado para o index 0. Essa conversão pode permitir trabalhar a definição de lc_at ao invés de term, quando essa for mais conveniente. A
+prova para esse teorema é simples, mas necessita da prova do lema lc_at_open para ser concluída.*)
+
 Lemma term_to_lc_at : forall t, term t -> lc_at 0 t.
 (* begin hide *)
 Proof.
@@ -715,6 +741,8 @@ Proof.
     intro H1.
 Admitted. *)
   
+(** O mesmo segue para o termo marcado, por definição. *)
+
 Lemma lterm_to_lc_at : forall t, lterm t -> lc_at 0 t.
 (* begin hide *)
 Proof.
@@ -791,6 +819,10 @@ Admitted.
  *)
 
 (* talvez *)
+
+(** Muitas vezes pode ser importante considerar se um pré-termo possui um index livre. Isto para checar
+por exemplo, se há a possibilidade de uma redução de uma abstração. Isso pode ser realizado por meio da definição abaixo?*)
+
 Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
   match t with
     | pterm_bvar n => if (k === n) then True else False
@@ -812,6 +844,9 @@ Proof.
     contradiction.
 Qed.
 (* end hide *)
+
+(** Respeitando a questão da alfa conversão, podemos demonstrar que se um pre-termo recebe uma substituição pela variável livre x, 
+ então ao receber de uma outra variável qualquer y uma substituição, este pré-termo continuaria sendo um termo.*)
 
 Lemma term_rename: forall t x y, term (t ^ x) -> term (t ^ y).
 (* begin hide *)
@@ -933,6 +968,7 @@ Proof.
 Admitted.
 (* end hide *)
 
+(* acredito que não precisa ser exibido *)
 Lemma open_rec_close_rec_term: forall t u k, ~(has_free_index k t) -> open_rec k u t = t.
 (* begin hide *)
 Proof.
