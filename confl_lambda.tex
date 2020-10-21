@@ -348,29 +348,25 @@ Respeitando a questão da alfa conversão, podemos demonstrar que se um pre-term
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{term\_rename}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{x} \coqdocvar{y}, \coqdocvar{term} (\coqdocvar{t} \^{} \coqdocvar{x}) \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{t} \^{} \coqdocvar{y}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{ind\_max}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{n}, \coqdocvar{term} (\{\coqdocvar{n} \~{}> \coqdocvar{u}\}\coqdocvar{t}) \ensuremath{\rightarrow} \ensuremath{\lnot} (\coqdocvar{has\_free\_index} (\coqdocvar{S} \coqdocvar{n}) \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{body\_not\_S}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{n}, \coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{not} (\coqdocvar{has\_free\_index} (\coqdocvar{S} \coqdocvar{n}) \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{open\_rec\_close\_rec\_term}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{k}, \~{}(\coqdocvar{has\_free\_index} \coqdocvar{k} \coqdocvar{t}) \ensuremath{\rightarrow} \coqdocvar{open\_rec} \coqdocvar{k} \coqdocvar{u} \coqdocvar{t} = \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{subst\_body}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{n}, \coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \{\coqdocvar{S} \coqdocvar{n} \~{}> \coqdocvar{u}\} \coqdocvar{t} = \coqdocvar{t}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+também precisamos definir que, para um termo qualquer, qualquer substituição não tem efeito. Essa propriedade pode 
+ser muito valiosa para algumas provas e é definida como no lema abaixo:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{subst\_term}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{n}, \coqdocvar{term} \coqdocvar{t} \ensuremath{\rightarrow} \{\coqdocvar{n} \~{}> \coqdocvar{u}\} \coqdocvar{t} = \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
+\end{coqdoccode}
+Por definição o mesmo também vale para um termo marcado: \begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{subst\_lterm}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{n}, \coqdocvar{lterm} \coqdocvar{t} \ensuremath{\rightarrow} \{\coqdocvar{n} \~{}> \coqdocvar{u}\} \coqdocvar{t} = \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{abs\_body}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2} \coqdocvar{L}, (\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{t1}\^{}\coqdocvar{x} = \coqdocvar{t2}\^{}\coqdocvar{x}) \ensuremath{\rightarrow} \coqdocvar{pterm\_abs} \coqdocvar{t1} = \coqdocvar{pterm\_abs} \coqdocvar{t2}.\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{subst\_term'}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, (\coqdockw{\ensuremath{\forall}} \coqdocvar{u} \coqdocvar{n}, \coqdocvar{term} \coqdocvar{t} \ensuremath{\rightarrow} \{\coqdocvar{n} \~{}> \coqdocvar{u}\} \coqdocvar{t} = \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{subst\_lemma\_lterms}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{t1} \coqdocvar{t2} \coqdocvar{t3}: \coqdocvar{pterm}) (\coqdocvar{i} \coqdocvar{j}:\coqdocvar{nat}), \coqdocvar{lterm} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{lterm} \coqdocvar{t3} \ensuremath{\rightarrow} \coqdocvar{i} \ensuremath{\not=} \coqdocvar{j} \ensuremath{\rightarrow} \{\coqdocvar{j} \~{}> \coqdocvar{t3}\} (\{\coqdocvar{i} \~{}> \coqdocvar{t2}\} \coqdocvar{t1}) = \{\coqdocvar{i} \~{}> \coqdocvar{t2}\} (\{\coqdocvar{j} \~{}> \coqdocvar{t3}\} \coqdocvar{t1}).\coqdoceol
@@ -380,6 +376,7 @@ Respeitando a questão da alfa conversão, podemos demonstrar que se um pre-term
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Definition} \coqdocvar{Rel} (\coqdocvar{A}:\coqdockw{Type}) := \coqdocvar{A} \ensuremath{\rightarrow} \coqdocvar{A} \ensuremath{\rightarrow} \coqdockw{Prop}.\coqdoceol
+\coqdocemptyline
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Inductive} \coqdocvar{contextual\_closure} (\coqdocvar{R}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
@@ -471,8 +468,6 @@ sofrerá nenhuma alteração.\begin{coqdoccode}
 \coqdockw{end}.\coqdoceol
 \coqdocemptyline
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{erase\_idemp}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a}, \coqdocvar{erase} (\coqdocvar{erase} \coqdocvar{a}) = \coqdocvar{erase} \coqdocvar{a}.\coqdoceol
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Inductive} \coqdocvar{refltrans} (\coqdoctac{red}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
@@ -556,39 +551,19 @@ marcados, o encontrar uma aplicação onde o termo mais à esquerda é uma abstr
 \coqdocindent{1.00em}
 \coqdockw{end}.\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{phi\_open\_rec\_fvar}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{n} \coqdocvar{x}, \coqdocvar{phi}(\coqdocvar{open\_rec} \coqdocvar{n} (\coqdocvar{pterm\_fvar} \coqdocvar{x}) \coqdocvar{t}) = \coqdocvar{open\_rec} \coqdocvar{n} (\coqdocvar{pterm\_fvar} \coqdocvar{x}) (\coqdocvar{phi} \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Corollary} \coqdocvar{phi\_open}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{x}, \coqdocvar{phi}(\coqdocvar{t}\^{}\coqdocvar{x}) = (\coqdocvar{phi} \coqdocvar{t})\^{}\coqdocvar{x}.\coqdoceol
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{phi\_term}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{lterm} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{phi} \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{term\_fvar\_to\_term}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2} \coqdocvar{t3} \coqdocvar{x}, \coqdocvar{term} (\coqdocvar{phi} (\coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2})\^{}\coqdocvar{x}) \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{t3} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{phi} (\coqdocvar{pterm\_app} \coqdocvar{t1} \coqdocvar{t2})\^{}\^{}\coqdocvar{t3}).\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{term\_phi\_open}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2} \coqdocvar{x} \coqdocvar{L},  \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{phi} (\coqdocvar{t1} \^{} \coqdocvar{x})) \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{phi} \coqdocvar{t2}) \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{phi} \coqdocvar{t1} \^{}\^{} \coqdocvar{phi} \coqdocvar{t2}).\coqdoceol
 \coqdocemptyline
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{lterm\_preserves\_fvar} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{x}, \coqdocvar{erase} \coqdocvar{M} = (\coqdocvar{pterm\_fvar} \coqdocvar{x}) \ensuremath{\rightarrow} \coqdocvar{M} = (\coqdocvar{pterm\_fvar} \coqdocvar{x}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{lterm\_preserves\_bvar} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{n}, \coqdocvar{erase} \coqdocvar{M} = (\coqdocvar{pterm\_bvar} \coqdocvar{n}) \ensuremath{\rightarrow} \coqdocvar{M} = (\coqdocvar{pterm\_bvar} \coqdocvar{n}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{lterm\_preserves\_app} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N} \coqdocvar{L}, \coqdocvar{erase} \coqdocvar{M} = (\coqdocvar{pterm\_app} \coqdocvar{N} \coqdocvar{L}) \ensuremath{\rightarrow} \coqdoctac{\ensuremath{\exists}} \coqdocvar{N'} \coqdocvar{L'}, \coqdocvar{M} = (\coqdocvar{pterm\_app} \coqdocvar{N'} \coqdocvar{L'}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{lterm\_preserves\_abs} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N}, \coqdocvar{erase} \coqdocvar{M} = (\coqdocvar{pterm\_abs} \coqdocvar{N}) \ensuremath{\rightarrow} \coqdoctac{\ensuremath{\exists}} \coqdocvar{N'}, \coqdocvar{M} = (\coqdocvar{pterm\_abs} \coqdocvar{N'}) \ensuremath{\lor} \coqdocvar{M} = (\coqdocvar{pterm\_labs} \coqdocvar{N'}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{open\_rec\_preserves\_labs}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{k}, (\coqdocvar{open\_rec} \coqdocvar{k} \coqdocvar{u} (\coqdocvar{pterm\_labs} \coqdocvar{t})) = (\coqdocvar{pterm\_labs} (\coqdocvar{open\_rec} (\coqdocvar{S} \coqdocvar{k}) \coqdocvar{u} \coqdocvar{t})).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{erase\_open\_rec} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{M} \coqdocvar{N}: \coqdocvar{pterm}) (\coqdocvar{k} : \coqdocvar{nat}), \coqdocvar{erase} (\{\coqdocvar{k} \~{}> \coqdocvar{N}\} \coqdocvar{M}) = \{\coqdocvar{k} \~{}> (\coqdocvar{erase} \coqdocvar{N})\} (\coqdocvar{erase} \coqdocvar{M}).\coqdoceol
+\coqdocemptyline
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Corollary} \coqdocvar{erase\_open} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N}: \coqdocvar{pterm}, \coqdocvar{erase} (\coqdocvar{M} \^{}\^{} \coqdocvar{N}) = (\coqdocvar{erase} \coqdocvar{M}) \^{}\^{} (\coqdocvar{erase} \coqdocvar{N}).\coqdoceol
@@ -604,17 +579,11 @@ marcados, o encontrar uma aplicação onde o termo mais à esquerda é uma abstr
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{erase\_prop\_str}: \coqdockw{\ensuremath{\forall}} \coqdocvar{M'} \coqdocvar{M} \coqdocvar{N} , \coqdocvar{pterm\_app} (\coqdocvar{pterm\_abs} \coqdocvar{M}) \coqdocvar{N} = \coqdocvar{erase} \coqdocvar{M'} \ensuremath{\rightarrow} \coqdoctac{\ensuremath{\exists}} \coqdocvar{u} \coqdocvar{v}, \coqdocvar{erase} \coqdocvar{u} = \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{erase} \coqdocvar{v} = \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M'} = \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{u}) \coqdocvar{v}) \ensuremath{\lor} (\coqdocvar{M'} = \coqdocvar{pterm\_app} (\coqdocvar{pterm\_abs} \coqdocvar{u}) \coqdocvar{v}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{erase\_prop1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N}: \coqdocvar{pterm}, \coqdocvar{term} \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M} -->\coqdocvar{B} \coqdocvar{N}) \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{M'} \coqdocvar{N'}, (\coqdocvar{erase} \coqdocvar{M'} = \coqdocvar{M}) \ensuremath{\land} (\coqdocvar{erase} \coqdocvar{N'} = \coqdocvar{N}) \ensuremath{\rightarrow}  (\coqdocvar{M'} -->\coqdocvar{lB} \coqdocvar{N'}).\coqdoceol
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{erase\_prop} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N} \coqdocvar{M'} \coqdocvar{N'}: \coqdocvar{pterm}, \coqdocvar{term} \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M} -->>\coqdocvar{B} \coqdocvar{N}) \ensuremath{\rightarrow} \coqdocvar{erase} \coqdocvar{M'} = \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{erase} \coqdocvar{N'} = \coqdocvar{N} \ensuremath{\rightarrow}  (\coqdocvar{M'} -->>\coqdocvar{lB} \coqdocvar{N'}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{phi\_preserves\_term}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{term} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{phi} \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{beta\_phi\_one\_step}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t1} -->\coqdocvar{lB} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{phi}(\coqdocvar{t1}) -->\coqdocvar{B} \coqdocvar{phi}(\coqdocvar{t2}).\coqdoceol
@@ -625,11 +594,7 @@ marcados, o encontrar uma aplicação onde o termo mais à esquerda é uma abstr
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{erase\_phi}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{erase}(\coqdocvar{t}) = \coqdocvar{t1} \ensuremath{\rightarrow} \coqdocvar{phi}(\coqdocvar{t}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t2}.\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{term\_erase}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{term} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{erase}(\coqdocvar{t}) = \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{body\_erase}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{erase}(\coqdocvar{t}) = \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
