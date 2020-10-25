@@ -354,8 +354,8 @@ Respeitando a questão da alfa conversão, podemos demonstrar que se um pre-term
 \coqdocemptyline
 \coqdocemptyline
 \end{coqdoccode}
-também precisamos definir que, para um termo qualquer, qualquer substituição não tem efeito. Essa propriedade pode 
-ser muito valiosa para algumas provas e é definida como no lema abaixo:\begin{coqdoccode}
+também precisamos provar que, para um termo qualquer, qualquer substituição não tem efeito. Essa propriedade pode 
+ser muito valiosa para algumas provas, principalmente a prova do lema da substituição, e é definida como no lema abaixo:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{subst\_term}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{n}, \coqdocvar{term} \coqdocvar{t} \ensuremath{\rightarrow} \{\coqdocvar{n} \~{}> \coqdocvar{u}\} \coqdocvar{t} = \coqdocvar{t}.\coqdoceol
@@ -368,15 +368,53 @@ Por definição o mesmo também vale para um termo marcado: \begin{coqdoccode}
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
+\end{coqdoccode}
+O lema da substituição é muito importante quando estamos realizando algumas operações e provas no cálculo lambda. Abaixo temos
+a sua definição como tentamos o provar, no entanto, ainda sem sucesso. O lema da substituição afirma que, realizar uma substituição A
+após já ter realizado uma substituição B prévia, é equivalente à realizar a substituição posterior A primeiro, e a substituição posterior B
+depois, mas é necessário realizar uma substituição dentro do termo que será a substituição na substituição A pela mesma substituição
+B. Vamos exemplificar na notação que estamos utilizando: $ {n ~> u}{j ~> a} t = {j ~> a} {n ~> {j ~> a} u} t $. Veja que algumas propriedades
+devem ser levadas em consideração: i e j devem ser index's distintos, para não haver dessa forma inconformidades. Sugerimos a realização 
+de provas em estrutura de árvores de prova (citação?), para que essa situação seja melhor compreendida. A definição do lema, para a construção de 
+sua prova em assistente de provas está logo abaixo: \begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{subst\_lemma\_lterms}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{t1} \coqdocvar{t2} \coqdocvar{t3}: \coqdocvar{pterm}) (\coqdocvar{i} \coqdocvar{j}:\coqdocvar{nat}), \coqdocvar{lterm} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{lterm} \coqdocvar{t3} \ensuremath{\rightarrow} \coqdocvar{i} \ensuremath{\not=} \coqdocvar{j} \ensuremath{\rightarrow} \{\coqdocvar{j} \~{}> \coqdocvar{t3}\} (\{\coqdocvar{i} \~{}> \coqdocvar{t2}\} \coqdocvar{t1}) = \{\coqdocvar{i} \~{}> \coqdocvar{t2}\} (\{\coqdocvar{j} \~{}> \coqdocvar{t3}\} \coqdocvar{t1}).\coqdoceol
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
+\end{coqdoccode}
+\section{Definição de beta redução}
+
+
+
+ A operação da beta redução é muito importante para o cálculo lambda. Uma beta redução consiste na operação de reduzir uma aplicação
+com uma abstração à esquerda, à substituição da abstração em todos os lugares em que o index local ocorrer no termo envolvido pela abstração
+em questão. No assistente de provas, para definir essa operação, precisamos seguir alguns passos, devido à quantidade de possíveis eventos quando
+da aplicação da operação. Estes passos se encontram logo abaixo.
+
+ Inicialmente criamos a propriedade de relação, advinda da teoria dos conjuntos. Uma relação é um binômio (a,b), onde a e b pertencem 
+à um mesmo conjunto de tipos, como por exemplo, o conjunto dos números reais. No assistente de provas isso pode ser feito como abaixo: Se
+um determinado tipo A, implica em um determinado tipo A, então temos uma propriedade.\begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Definition} \coqdocvar{Rel} (\coqdocvar{A}:\coqdockw{Type}) := \coqdocvar{A} \ensuremath{\rightarrow} \coqdocvar{A} \ensuremath{\rightarrow} \coqdockw{Prop}.\coqdoceol
 \coqdocemptyline
+\end{coqdoccode}
+\subsection{Definição de redex}
+
+
+
+ Para trabalhar com a beta redução é muito importante trabalhar com o conceito de redex. Um redex nada mais é do que uma aplicação
+que possui uma abstração marcada ou não à sua esquerda. Dessa forma precisamos definir o feixo contextual transitivo, ou seja, precisamos ajudar
+a máquina a entender quando existem ou não redex's em um termo. Um feixo contextutal transitivo define uma relação direta entre dois termos,
+estes termos seguem algumas restrições. Podemos dizer que, estes termos são o termo anterior à uma beta redução, e o termo posterior à aplicação
+de uma beta redução em um redex específico de um termo e estes dois termos participam portanto de uma relação. Como a definição de termo 
+é recursiva, e uma aplicação ocorre entre dois termos, então precisamos deixar claro para a máquina que, primeiro as beta reduções que ocorrerem
+tanto à esquerda, quanto à direita, em uma aplicação relacionam o termo anterior, ao termo resultante. Além disso, também precisamos relacionar
+os termos resultantes de uma redução em uma abstração, estão relacionados com os termos que possuiam a abstração. Desse modo, definimos como
+abaixo o feixo contextual transitivo para o conjunto dos termos, e para o conjunto um pouco mais extenso dos termos marcados. \begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Inductive} \coqdocvar{contextual\_closure} (\coqdocvar{R}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
@@ -417,6 +455,72 @@ Por definição o mesmo também vale para um termo marcado: \begin{coqdoccode}
 \coqdocvar{lcontextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_labs} \coqdocvar{t}) (\coqdocvar{pterm\_labs} \coqdocvar{t'}).\coqdoceol
 \coqdocemptyline
 \end{coqdoccode}
+De outra forma, também é necessário definir a enésima beta redução. A enésima beta redução consiste na aplicação de n beta reduções
+em um termo. Para definir esta operação para a máquina, precisamos de uma definição auxiliar de aplicação transitiva em um determinado termo,
+por meio do conceito de relação. Basicamente precisamos fazer com que a máquina percorra recursivamente um termo, dentre os seus diversos pré-termos,
+até encontrar todas as beta reduções que fazem um termo a, chegar à um termo b, após n beta reduções. Os casos base são onde existe apenas uma
+variável e ela reduz a ela mesma, e uma redução específica de a para b. Abaixo temos duas definições possíveis para essa propriedade, e uma prova
+de sua equivalência. \begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{refltrans} (\coqdoctac{red}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{reflex}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a}, \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{a}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{atleast1}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b}, \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{rtrans}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b} \coqdocvar{c}, \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{b} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{c}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{refltrans'} (\coqdoctac{red}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{refl}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a}, \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{a} \coqdocvar{a}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{rtrans'}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b} \coqdocvar{c}, \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{b} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{a} \coqdocvar{c}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Lemma} \coqdocvar{refltrans\_equiv}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{R}: \coqdocvar{Rel} \coqdocvar{pterm}) (\coqdocvar{a} \coqdocvar{b}: \coqdocvar{pterm}), \coqdocvar{refltrans} \coqdocvar{R} \coqdocvar{a} \coqdocvar{b} \ensuremath{\leftrightarrow} \coqdocvar{refltrans'} \coqdocvar{R} \coqdocvar{a} \coqdocvar{b}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Assim podemos definir as operações de beta redução, e da enésima beta redução. rule\_b se refere à definição de uma relação
+onde um redex é substituiído pela termo resultante da substituição de de todos os index's ligados de um termo qualquer t, por uma variável
+u. Na prática, esta é a definição de beta redução, quando esta é posta em conjunto com o feixo contextual transitivo, como visto na definição
+do símbolo de beta redução para a máquina: ``-->B''. A operação da enésima beta redução é feita por meio da aplicação sucessiva e recursiva da
+operação da beta redução, por meio da regra refltrans, explicada mais acima.\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{rule\_b} : \coqdocvar{Rel} \coqdocvar{pterm}  :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{reg\_rule\_b} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{t} \coqdocvar{u}:\coqdocvar{pterm}), \coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{u} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{rule\_b} (\coqdocvar{pterm\_app}(\coqdocvar{pterm\_abs} \coqdocvar{t}) \coqdocvar{u}) (\coqdocvar{t} \^{}\^{} \coqdocvar{u}).\coqdoceol
+\coqdocnoindent
+\coqdockw{Notation} "t -->B u" := (\coqdocvar{contextual\_closure} \coqdocvar{rule\_b} \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
+\coqdocnoindent
+\coqdockw{Notation} "t -->>B u" := (\coqdocvar{refltrans} (\coqdocvar{contextual\_closure} \coqdocvar{rule\_b}) \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+O mesmo deve ser definido para o conjunto dos termos marcados. Neste caso, precisamos tomar o cuidado de diferenciar as abstrações das
+abstrações marcadas, e tratar cada um dos casos, apesar de sabermos serem análogos, a máquina não o sabe.\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{rule\_lb} : \coqdocvar{Rel} \coqdocvar{pterm}  :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{reg\_rule\_bb} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{t} \coqdocvar{u}:\coqdocvar{pterm}), \coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{u} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{rule\_lb} (\coqdocvar{pterm\_app}(\coqdocvar{pterm\_abs} \coqdocvar{t}) \coqdocvar{u}) (\coqdocvar{t} \^{}\^{} \coqdocvar{u})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{reg\_rule\_lb} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{t} \coqdocvar{u}:\coqdocvar{pterm}),\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{u} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{rule\_lb} (\coqdocvar{pterm\_app}(\coqdocvar{pterm\_labs} \coqdocvar{t}) \coqdocvar{u}) (\coqdocvar{t} \^{}\^{} \coqdocvar{u}).\coqdoceol
+\coqdocnoindent
+\coqdockw{Notation} "t -->lB u" := (\coqdocvar{lcontextual\_closure} \coqdocvar{rule\_lb} \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
+\coqdocnoindent
+\coqdockw{Notation} "t -->>lB u" := (\coqdocvar{refltrans} (\coqdocvar{lcontextual\_closure} \coqdocvar{rule\_lb}) \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
 \section{Prova da confluência}
 
 
@@ -425,7 +529,7 @@ Por definição o mesmo também vale para um termo marcado: \begin{coqdoccode}
 
 
 
- A confluência no cálculo lambda se define como: Dados dois termos iniciais,
+ A confluência no cálculo lambda se define como: Dados dois termos iniciais provenientes de um único termo,
 a partir de qualquer conjunto de reduções beta (duas bifurcações quaisquer na árvore de reduções)
  é sempre possível chegar ao mesmo termo resultante (considerando a alfa equivalência). 
 Assim, esperamos provar que o cálculo lambda é confluente. Tal característica (confluência) 
@@ -469,56 +573,6 @@ sofrerá nenhuma alteração.\begin{coqdoccode}
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{refltrans} (\coqdoctac{red}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{reflex}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a}, \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{a}\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{atleast1}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b}, \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{b}\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{rtrans}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b} \coqdocvar{c}, \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{b} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{c}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{refltrans'} (\coqdoctac{red}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{refl}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a}, \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{a} \coqdocvar{a}\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{rtrans'}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b} \coqdocvar{c}, \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{b} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{a} \coqdocvar{c}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{refltrans\_equiv}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{R}: \coqdocvar{Rel} \coqdocvar{pterm}) (\coqdocvar{a} \coqdocvar{b}: \coqdocvar{pterm}), \coqdocvar{refltrans} \coqdocvar{R} \coqdocvar{a} \coqdocvar{b} \ensuremath{\leftrightarrow} \coqdocvar{refltrans'} \coqdocvar{R} \coqdocvar{a} \coqdocvar{b}.\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-A beta redução do cálculo lambda é a reduçao de um redex... Explicar as definições mais abaixo...\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{rule\_b} : \coqdocvar{Rel} \coqdocvar{pterm}  :=\coqdoceol
-\coqdocindent{1.00em}
-\coqdocvar{reg\_rule\_b} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{t} \coqdocvar{u}:\coqdocvar{pterm}), \coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{u} \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{2.00em}
-\coqdocvar{rule\_b} (\coqdocvar{pterm\_app}(\coqdocvar{pterm\_abs} \coqdocvar{t}) \coqdocvar{u}) (\coqdocvar{t} \^{}\^{} \coqdocvar{u}).\coqdoceol
-\coqdocnoindent
-\coqdockw{Notation} "t -->B u" := (\coqdocvar{contextual\_closure} \coqdocvar{rule\_b} \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
-\coqdocnoindent
-\coqdockw{Notation} "t -->>B u" := (\coqdocvar{refltrans} (\coqdocvar{contextual\_closure} \coqdocvar{rule\_b}) \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{rule\_lb} : \coqdocvar{Rel} \coqdocvar{pterm}  :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{reg\_rule\_bb} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{t} \coqdocvar{u}:\coqdocvar{pterm}), \coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{u} \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{2.00em}
-\coqdocvar{rule\_lb} (\coqdocvar{pterm\_app}(\coqdocvar{pterm\_abs} \coqdocvar{t}) \coqdocvar{u}) (\coqdocvar{t} \^{}\^{} \coqdocvar{u})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{reg\_rule\_lb} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{t} \coqdocvar{u}:\coqdocvar{pterm}),\coqdoceol
-\coqdocindent{2.00em}
-\coqdocvar{body} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{u} \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{2.00em}
-\coqdocvar{rule\_lb} (\coqdocvar{pterm\_app}(\coqdocvar{pterm\_labs} \coqdocvar{t}) \coqdocvar{u}) (\coqdocvar{t} \^{}\^{} \coqdocvar{u}).\coqdoceol
-\coqdocnoindent
-\coqdockw{Notation} "t -->lB u" := (\coqdocvar{lcontextual\_closure} \coqdocvar{rule\_lb} \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
-\coqdocnoindent
-\coqdockw{Notation} "t -->>lB u" := (\coqdocvar{refltrans} (\coqdocvar{lcontextual\_closure} \coqdocvar{rule\_lb}) \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 60).\coqdoceol
-\coqdocemptyline
 \end{coqdoccode}
 Dessa forma, também é necessária a definição da função phi. A função phi também trabalha
 com marcas, assim como o erase, no entanto possui um funcionamento um pouco distinto. A função phi
@@ -553,6 +607,10 @@ marcados, o encontrar uma aplicação onde o termo mais à esquerda é uma abstr
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
+\end{coqdoccode}
+Com isso, podemos provar, por exemplo, que um termo marcado torna-se um termo após a aplicação da operação phi. A definição
+deste lema está como abaixo, e não é tão complexo realizar a sua prova no coq.\begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{phi\_term}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{lterm} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{phi} \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
@@ -565,14 +623,12 @@ marcados, o encontrar uma aplicação onde o termo mais à esquerda é uma abstr
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Corollary} \coqdocvar{erase\_open} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N}: \coqdocvar{pterm}, \coqdocvar{erase} (\coqdocvar{M} \^{}\^{} \coqdocvar{N}) = (\coqdocvar{erase} \coqdocvar{M}) \^{}\^{} (\coqdocvar{erase} \coqdocvar{N}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{phi\_subst\_rec}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{M} \coqdocvar{N}: \coqdocvar{pterm}) (\coqdocvar{k}: \coqdocvar{nat}), \coqdocvar{term} \coqdocvar{N} \ensuremath{\rightarrow} \coqdocvar{phi} (\{\coqdocvar{k} \~{}> \coqdocvar{N}\} \coqdocvar{M}) = \{\coqdocvar{k} \~{}> (\coqdocvar{phi} \coqdocvar{N})\}(\coqdocvar{phi} \coqdocvar{M}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Corollary} \coqdocvar{phi\_subst}: \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N}, \coqdocvar{phi} (\coqdocvar{M} \^{}\^{} \coqdocvar{N}) = (\coqdocvar{phi} \coqdocvar{M}) \^{}\^{} (\coqdocvar{phi} \coqdocvar{N}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Na prova de barendregt para a confluência do cálculo lambda também é muito importante provar a propriedade de que, se um termo M reduz para um termo N, então o resultado da
+ aplicação da função phi em M, também reduz para o resultado da aplicação da função phi no termo N. A difinição deste lema está logo abaixo.\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{phi\_prop}: \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N} : \coqdocvar{pterm}, \coqdocvar{lterm} \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{lterm} \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M} -->>\coqdocvar{lB} \coqdocvar{N}) \ensuremath{\rightarrow} (\coqdocvar{phi} \coqdocvar{M}) -->>\coqdocvar{B} (\coqdocvar{phi} \coqdocvar{N}).\coqdoceol
@@ -580,16 +636,28 @@ marcados, o encontrar uma aplicação onde o termo mais à esquerda é uma abstr
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
+\end{coqdoccode}
+Também possuímos outra propriedade, que será muito importante para a prova da confluência do cálculo lambda. Esta se refere ao 
+fato de que se M reduz para N em n passos, sendo M e N termos pertencentes ao conjunto dos termos marcados, então o resultado de aplicar a função
+de apagar marcas (erase) em M reduz ao resultado da aplicação da operação de apagar marcas em N. A definição para este lema está logo abaixo em 
+duas possíveis formas. Até o momento, não conseguimos completar nenhuma das duas provas ainda no coq.\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Lemma} \coqdocvar{erase\_prop1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N}: \coqdocvar{pterm}, \coqdocvar{term} \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M} -->\coqdocvar{B} \coqdocvar{N}) \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{M'} \coqdocvar{N'}, (\coqdocvar{erase} \coqdocvar{M'} = \coqdocvar{M}) \ensuremath{\land} (\coqdocvar{erase} \coqdocvar{N'} = \coqdocvar{N}) \ensuremath{\rightarrow}  (\coqdocvar{M'} -->\coqdocvar{lB} \coqdocvar{N'}).\coqdoceol
+\coqdocnoindent
+\coqdockw{Proof}.\coqdoceol
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{erase\_prop} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N} \coqdocvar{M'} \coqdocvar{N'}: \coqdocvar{pterm}, \coqdocvar{term} \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M} -->>\coqdocvar{B} \coqdocvar{N}) \ensuremath{\rightarrow} \coqdocvar{erase} \coqdocvar{M'} = \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{erase} \coqdocvar{N'} = \coqdocvar{N} \ensuremath{\rightarrow}  (\coqdocvar{M'} -->>\coqdocvar{lB} \coqdocvar{N'}).\coqdoceol
 \coqdocemptyline
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{beta\_phi\_one\_step}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t1} -->\coqdocvar{lB} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{phi}(\coqdocvar{t1}) -->\coqdocvar{B} \coqdocvar{phi}(\coqdocvar{t2}).\coqdoceol
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{beta\_phi}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t1} -->>\coqdocvar{lB} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{phi}(\coqdocvar{t1}) -->>\coqdocvar{B} \coqdocvar{phi}(\coqdocvar{t2}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+Assim, também precisamos provar que dado um mesmo termo t, se t1 é o termo resultante da aplicação da função de apagar marcas
+em t, e t2 o resultado da aplicação da função phi em t, então t1 reduz em n passos para t2. Essa definição vai ser um artifício importante
+na prova do strip-lemma, ao seguir a estratégia de barendregt. A definição se encontra logo abaixo, mas ainda não conseguimos a formalizar
+em coq.\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{erase\_phi}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{erase}(\coqdocvar{t}) = \coqdocvar{t1} \ensuremath{\rightarrow} \coqdocvar{phi}(\coqdocvar{t}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t2}.\coqdoceol

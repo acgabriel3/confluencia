@@ -1083,8 +1083,8 @@ Admitted. *)
 Admitted.
 *)
 
-(** também precisamos definir que, para um termo qualquer, qualquer substituição não tem efeito. Essa propriedade pode 
-ser muito valiosa para algumas provas e é definida como no lema abaixo:*)
+(** também precisamos provar que, para um termo qualquer, qualquer substituição não tem efeito. Essa propriedade pode 
+ser muito valiosa para algumas provas, principalmente a prova do lema da substituição, e é definida como no lema abaixo:*)
 
 Lemma subst_term: forall t u n, term t -> {n ~> u} t = t.
 (* begin hide *)
@@ -1174,6 +1174,15 @@ Proof.
     apply IHt1.
 Admitted.
 (* end hide *)
+
+(** O lema da substituição é muito importante quando estamos realizando algumas operações e provas no cálculo lambda. Abaixo temos
+a sua definição como tentamos o provar, no entanto, ainda sem sucesso. O lema da substituição afirma que, realizar uma substituição A
+após já ter realizado uma substituição B prévia, é equivalente à realizar a substituição posterior A primeiro, e a substituição posterior B
+depois, mas é necessário realizar uma substituição dentro do termo que será a substituição na substituição A pela mesma substituição
+B. Vamos exemplificar na notação que estamos utilizando: $ {n ~> u}{j ~> a} t = {j ~> a} {n ~> {j ~> a} u} t $. Veja que algumas propriedades
+devem ser levadas em consideração: i e j devem ser index's distintos, para não haver dessa forma inconformidades. Sugerimos a realização 
+de provas em estrutura de árvores de prova (citação?), para que essa situação seja melhor compreendida. A definição do lema, para a construção de 
+sua prova em assistente de provas está logo abaixo: *)
 
 Lemma subst_lemma_lterms: forall (t1 t2 t3: pterm) (i j:nat), lterm t2 -> lterm t3 -> i <> j -> {j ~> t3} ({i ~> t2} t1) = {i ~> t2} ({j ~> t3} t1).
 (* begin hide *)
@@ -1382,9 +1391,30 @@ Proof.
 Admitted.
  *)
 
+(** * Definição de beta redução *)
+
+(** A operação da beta redução é muito importante para o cálculo lambda. Uma beta redução consiste na operação de reduzir uma aplicação
+com uma abstração à esquerda, à substituição da abstração em todos os lugares em que o index local ocorrer no termo envolvido pela abstração
+em questão. No assistente de provas, para definir essa operação, precisamos seguir alguns passos, devido à quantidade de possíveis eventos quando
+da aplicação da operação. Estes passos se encontram logo abaixo.*)
+
+(** Inicialmente criamos a propriedade de relação, advinda da teoria dos conjuntos. Uma relação é um binômio (a,b), onde a e b pertencem 
+à um mesmo conjunto de tipos, como por exemplo, o conjunto dos números reais. No assistente de provas isso pode ser feito como abaixo: Se
+um determinado tipo A, implica em um determinado tipo A, então temos uma propriedade.*)
+
 Definition Rel (A:Type) := A -> A -> Prop.
 
-(* Acredito que não é necessário exibir estas propriedades *)
+(** ** Definição de redex *)
+
+(** Para trabalhar com a beta redução é muito importante trabalhar com o conceito de redex. Um redex nada mais é do que uma aplicação
+que possui uma abstração marcada ou não à sua esquerda. Dessa forma precisamos definir o feixo contextual transitivo, ou seja, precisamos ajudar
+a máquina a entender quando existem ou não redex's em um termo. Um feixo contextutal transitivo define uma relação direta entre dois termos,
+estes termos seguem algumas restrições. Podemos dizer que, estes termos são o termo anterior à uma beta redução, e o termo posterior à aplicação
+de uma beta redução em um redex específico de um termo e estes dois termos participam portanto de uma relação. Como a definição de termo 
+é recursiva, e uma aplicação ocorre entre dois termos, então precisamos deixar claro para a máquina que, primeiro as beta reduções que ocorrerem
+tanto à esquerda, quanto à direita, em uma aplicação relacionam o termo anterior, ao termo resultante. Além disso, também precisamos relacionar
+os termos resultantes de uma redução em uma abstração, estão relacionados com os termos que possuiam a abstração. Desse modo, definimos como
+abaixo o feixo contextual transitivo para o conjunto dos termos, e para o conjunto um pouco mais extenso dos termos marcados. *)
 
 Inductive contextual_closure (R: Rel pterm) : Rel pterm :=
   | redex : forall t s, R t s -> contextual_closure R t s
@@ -1406,11 +1436,78 @@ Inductive lcontextual_closure (R: Rel pterm) : Rel pterm :=
   | l_abs_in : forall t t' L, (forall x, x \notin L -> lcontextual_closure R (t^x) (t'^x)) ->
                                lcontextual_closure R (pterm_labs t) (pterm_labs t').
 
+(** De outra forma, também é necessário definir a enésima beta redução. A enésima beta redução consiste na aplicação de n beta reduções
+em um termo. Para definir esta operação para a máquina, precisamos de uma definição auxiliar de aplicação transitiva em um determinado termo,
+por meio do conceito de relação. Basicamente precisamos fazer com que a máquina percorra recursivamente um termo, dentre os seus diversos pré-termos,
+até encontrar todas as beta reduções que fazem um termo a, chegar à um termo b, após n beta reduções. Os casos base são onde existe apenas uma
+variável e ela reduz a ela mesma, e uma redução específica de a para b. Abaixo temos duas definições possíveis para essa propriedade, e uma prova
+de sua equivalência. *)
+
+
+Inductive refltrans (red: Rel pterm) : Rel pterm :=
+| reflex: forall a, refltrans red a a
+| atleast1: forall a b, red a b -> refltrans red a b
+| rtrans: forall a b c, refltrans red a b -> refltrans red b c -> refltrans red a c.
+
+Inductive refltrans' (red: Rel pterm) : Rel pterm :=
+| refl: forall a, refltrans' red a a
+| rtrans': forall a b c, red a b -> refltrans' red b c -> refltrans' red a c.
+
+Lemma refltrans_equiv: forall (R: Rel pterm) (a b: pterm), refltrans R a b <-> refltrans' R a b.
+(* begin hide *)
+Proof.
+  intros R a b; split.
+  - intro H.
+    induction H.
+    + apply refl.
+    + apply rtrans' with b.
+      * assumption.
+      * apply refl.
+    + clear H H0.
+      induction IHrefltrans1.
+      * assumption.
+      * apply rtrans' with b.
+        ** assumption.
+        ** apply IHIHrefltrans1; assumption.
+  - intro H.
+    induction H.
+    + apply reflex.
+    + apply rtrans with b.
+      * apply atleast1; assumption.
+      * assumption.
+Qed.    
+(* end hide *)
+
+(** Assim podemos definir as operações de beta redução, e da enésima beta redução. rule_b se refere à definição de uma relação
+onde um redex é substituiído pela termo resultante da substituição de de todos os index's ligados de um termo qualquer t, por uma variável
+u. Na prática, esta é a definição de beta redução, quando esta é posta em conjunto com o feixo contextual transitivo, como visto na definição
+do símbolo de beta redução para a máquina: "-->B". A operação da enésima beta redução é feita por meio da aplicação sucessiva e recursiva da
+operação da beta redução, por meio da regra refltrans, explicada mais acima.*)
+
+Inductive rule_b : Rel pterm  :=
+  reg_rule_b : forall (t u:pterm), body t -> term u ->
+    rule_b (pterm_app(pterm_abs t) u) (t ^^ u).
+Notation "t -->B u" := (contextual_closure rule_b t u) (at level 60).
+Notation "t -->>B u" := (refltrans (contextual_closure rule_b) t u) (at level 60).
+
+(** O mesmo deve ser definido para o conjunto dos termos marcados. Neste caso, precisamos tomar o cuidado de diferenciar as abstrações das
+abstrações marcadas, e tratar cada um dos casos, apesar de sabermos serem análogos, a máquina não o sabe.*)
+
+Inductive rule_lb : Rel pterm  :=
+  | reg_rule_bb : forall (t u:pterm), body t -> term u ->
+    rule_lb (pterm_app(pterm_abs t) u) (t ^^ u)
+  | reg_rule_lb : forall (t u:pterm),
+    body t -> term u ->
+    rule_lb (pterm_app(pterm_labs t) u) (t ^^ u).
+Notation "t -->lB u" := (lcontextual_closure rule_lb t u) (at level 60).
+Notation "t -->>lB u" := (refltrans (lcontextual_closure rule_lb) t u) (at level 60).
+
+
 (** * Prova da confluência *)
 
 (** ** O que é confluência *)
 
-(** A confluência no cálculo lambda se define como: Dados dois termos iniciais,
+(** A confluência no cálculo lambda se define como: Dados dois termos iniciais provenientes de um único termo,
 a partir de qualquer conjunto de reduções beta (duas bifurcações quaisquer na árvore de reduções)
  é sempre possível chegar ao mesmo termo resultante (considerando a alfa equivalência). 
 Assim, esperamos provar que o cálculo lambda é confluente. Tal característica (confluência) 
@@ -1472,57 +1569,7 @@ Proof.
     rewrite IHa; reflexivity.
 Qed.
 (* end hide *)
-    
-Inductive refltrans (red: Rel pterm) : Rel pterm :=
-| reflex: forall a, refltrans red a a
-| atleast1: forall a b, red a b -> refltrans red a b
-| rtrans: forall a b c, refltrans red a b -> refltrans red b c -> refltrans red a c.
 
-Inductive refltrans' (red: Rel pterm) : Rel pterm :=
-| refl: forall a, refltrans' red a a
-| rtrans': forall a b c, red a b -> refltrans' red b c -> refltrans' red a c.
-
-Lemma refltrans_equiv: forall (R: Rel pterm) (a b: pterm), refltrans R a b <-> refltrans' R a b.
-(* begin hide *)
-Proof.
-  intros R a b; split.
-  - intro H.
-    induction H.
-    + apply refl.
-    + apply rtrans' with b.
-      * assumption.
-      * apply refl.
-    + clear H H0.
-      induction IHrefltrans1.
-      * assumption.
-      * apply rtrans' with b.
-        ** assumption.
-        ** apply IHIHrefltrans1; assumption.
-  - intro H.
-    induction H.
-    + apply reflex.
-    + apply rtrans with b.
-      * apply atleast1; assumption.
-      * assumption.
-Qed.    
-(* end hide *)
-
-(** A beta redução do cálculo lambda é a reduçao de um redex... Explicar as definições mais abaixo...*)
-
-Inductive rule_b : Rel pterm  :=
-  reg_rule_b : forall (t u:pterm), body t -> term u ->
-    rule_b (pterm_app(pterm_abs t) u) (t ^^ u).
-Notation "t -->B u" := (contextual_closure rule_b t u) (at level 60).
-Notation "t -->>B u" := (refltrans (contextual_closure rule_b) t u) (at level 60).
-
-Inductive rule_lb : Rel pterm  :=
-  | reg_rule_bb : forall (t u:pterm), body t -> term u ->
-    rule_lb (pterm_app(pterm_abs t) u) (t ^^ u)
-  | reg_rule_lb : forall (t u:pterm),
-    body t -> term u ->
-    rule_lb (pterm_app(pterm_labs t) u) (t ^^ u).
-Notation "t -->lB u" := (lcontextual_closure rule_lb t u) (at level 60).
-Notation "t -->>lB u" := (refltrans (lcontextual_closure rule_lb) t u) (at level 60).
 
 (** Dessa forma, também é necessária a definição da função phi. A função phi também trabalha
 com marcas, assim como o erase, no entanto possui um funcionamento um pouco distinto. A função phi
@@ -1618,7 +1665,10 @@ Proof.
   (* apply phi_open_rec.
 Qed.
    *)
-  
+
+(** Com isso, podemos provar, por exemplo, que um termo marcado torna-se um termo após a aplicação da operação phi. A definição
+deste lema está como abaixo, e não é tão complexo realizar a sua prova no coq.*)
+
 Lemma phi_term: forall t, lterm t -> term (phi t).
 (* begin hide *)
 Proof.
@@ -1822,8 +1872,8 @@ Proof.
 Qed.
 (* end hide *)
 
-Corollary erase_open : forall M N: pterm, erase (M ^^ N) = (erase M) ^^ (erase N).
 (* begin hide *)
+Corollary erase_open : forall M N: pterm, erase (M ^^ N) = (erase M) ^^ (erase N).
 Proof.
   unfold open.
   intros M N.
@@ -1831,8 +1881,8 @@ Proof.
 Qed.
 (* end hide *)
 
-Lemma phi_subst_rec: forall (M N: pterm) (k: nat), term N -> phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
 (* begin hide *)
+Lemma phi_subst_rec: forall (M N: pterm) (k: nat), term N -> phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
 Proof.
   induction M.
   - intros N k.
@@ -1893,11 +1943,14 @@ Proof.
 Admitted.    
 (* end hide *)
 
-Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
 (* begin hide *)
+Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
 Proof.
   Admitted.
 (* end hide *)
+
+(** Na prova de barendregt para a confluência do cálculo lambda também é muito importante provar a propriedade de que, se um termo M reduz para um termo N, então o resultado da
+ aplicação da função phi em M, também reduz para o resultado da aplicação da função phi no termo N. A difinição deste lema está logo abaixo.*)
 
 Lemma phi_prop: forall M N : pterm, lterm M -> lterm N -> (M -->>lB N) -> (phi M) -->>B (phi N).
 (* begin hide *)
@@ -1938,9 +1991,15 @@ Proof.
 Admitted.
 (* end hide *)
 
-(* begin hide *)
+
+(** Também possuímos outra propriedade, que será muito importante para a prova da confluência do cálculo lambda. Esta se refere ao 
+fato de que se M reduz para N em n passos, sendo M e N termos pertencentes ao conjunto dos termos marcados, então o resultado de aplicar a função
+de apagar marcas (erase) em M reduz ao resultado da aplicação da operação de apagar marcas em N. A definição para este lema está logo abaixo em 
+duas possíveis formas. Até o momento, não conseguimos completar nenhuma das duas provas ainda no coq.*)
+
 Lemma erase_prop1 : forall M N: pterm, term M -> term N -> (M -->B N) -> forall M' N', (erase M' = M) /\ (erase N' = N) ->  (M' -->lB N').
 Proof.
+(* begin hide *)
   intros M N HtM HtN Hred.
   
   induction Hred.
@@ -1995,8 +2054,8 @@ Proof.
   Admitted.
 (* end hide *)
   
-Lemma beta_phi_one_step: forall t1 t2, t1 -->lB t2 -> phi(t1) -->B phi(t2).
 (* begin hide *)
+Lemma beta_phi_one_step: forall t1 t2, t1 -->lB t2 -> phi(t1) -->B phi(t2).
 Proof.
   intros t1 t2 H.
   induction H.
@@ -2010,8 +2069,8 @@ Proof.
     + Admitted.
 (* end hide *)  
 
-Lemma beta_phi: forall t1 t2, t1 -->>lB t2 -> phi(t1) -->>B phi(t2).
 (* begin hide *)
+Lemma beta_phi: forall t1 t2, t1 -->>lB t2 -> phi(t1) -->>B phi(t2).
 Proof.
   intros t1 t2 H.
   induction H.
@@ -2020,6 +2079,12 @@ Proof.
     apply atleast1; assumption.
   - Admitted.
 (* end hide *)
+
+
+(** Assim, também precisamos provar que dado um mesmo termo t, se t1 é o termo resultante da aplicação da função de apagar marcas
+em t, e t2 o resultado da aplicação da função phi em t, então t1 reduz em n passos para t2. Essa definição vai ser um artifício importante
+na prova do strip-lemma, ao seguir a estratégia de barendregt. A definição se encontra logo abaixo, mas ainda não conseguimos a formalizar
+em coq.*)
 
 Lemma erase_phi: forall t t1 t2, erase(t) = t1 -> phi(t) = t2 -> t1 -->>B t2.
 (* begin hide *)
