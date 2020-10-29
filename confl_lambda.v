@@ -357,13 +357,14 @@ seguir uma prova por indução na estrutura, nestes casos, o assistente consegue
 quando precisamos trabalhar com provas no tamanho dos termos, muitas vezes são necessárias definições para contar o tamanho do
 tipo que estamos lidando. E posteriormente, essas definições são utilizadas para definir induções no tamanho específicas para o 
 domínio em que estamos trabalhando. Não vamos apresentar estas definições neste trabalho, por serem muito técnicas e poderem
-ser facilmente encontradas em outros trabalhos da literatura (possivelmente citar trabalhos aqui). *)
+ser facilmente encontradas em outros trabalhos da literatura como em \cite{paulin1993inductive} que aborda a construção de
+provas indutivas usando o Coq. *)
 
-(** No trabalho de \cite{Chargerout} (concertar citação) e na notação de nomes locais é necessária a definição de operações de
+(** No trabalho de \cite{Ch11} e na notação de nomes locais é necessária a definição de operações de
 abertura e fechamento dos termos. As operações de abertura e fechamento manipulam os index's e nomes, e têm como objetivo controlar
-e tornar possível a decisão de se um termo é ou não fechado, ou seja, possui uma sintaxe válida. Não iremos mostrar essas definições
-neste trabalho, pois as mesmas podem ser encontradas no próprio trabalho de \cite{Chargerout} (concertar citação), mas estas definições
-foram utilizadas e exploradas neste trabalho. *)
+e tornar possível a decisão de se um termo é ou não fechado, ou seja, possui uma sintaxe válida. Demonstramos como as operações de abertura (open)
+são definidas, mas não iremos mostrar essas definições para as operações de fechamento
+neste trabalho, pois as mesmas podem ser encontradas no próprio trabalho de \cite{Ch11}, e não foram utilizadas em nossa provas. *)
 
 (* begin hide *)
 Fixpoint pterm_size (t : pterm) : nat :=
