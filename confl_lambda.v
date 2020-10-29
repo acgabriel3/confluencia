@@ -39,8 +39,8 @@ Vamos exemplificar:
 
 Dada a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
 que apresentamos. O index 0 neste caso indica que existem 0 passos para em uma aplicação
-substituir a variável ligada que o mesmo representa, estando esse index portanto ligado
-diretamente à abstração apresentada, e sendo dessa maneira válido semanticamento. Porém,
+substituir a variável ligada que o mesmo representa. Estando esse index portanto ligado
+diretamente à abstração apresentada, e sendo dessa maneira válido semanticamente. Porém,
 sintaticamente o index pode ser um valor iteiro k qualquer. Assim, por exemplo, ao 
 fazermos $\lambda.1$, estamos construindo semanticamente uma relação que não possui 
 significado válido. Queremos representar variáveis ligadas por meio de index's e neste caso o 
@@ -48,8 +48,9 @@ index 1 não está ligado à nenhuma abstração, portanto não representa uma v
 e não é válido para nossa representação.*)
 
 (** Assim podemos definir o conceito de pré-termo como sendo: Todo conjunto de símbolos sintaticamente
-válidos, que ainda não temos certeza acerca da validade semântica. Matematicamente os pré-termos 
-são definidos de acordo com a seguinte gramática: *)
+válidos, que ainda não temos certeza acerca da validade semântica. Além disso, um pré-termo pode
+aparecer entre os termos anterior e resultante das operações realizadas no cálculo lambda.
+Matematicamente os pré-termos são definidos de acordo com a seguinte gramática: *)
 
 Inductive pterm : Set :=
   | pterm_bvar : nat -> pterm
@@ -57,14 +58,6 @@ Inductive pterm : Set :=
   | pterm_app  : pterm -> pterm -> pterm
   | pterm_abs  : pterm -> pterm
   | pterm_labs  : pterm -> pterm.
-
-(** Um pré-termo é um termo do cálculo lambda que possui em si indexs de de Bruijin que não foram
-substituídos. (esta definição está correta?)
-
-Definição alternativa:
-
-Um pré-termo é um conjunto de símbolos do cálculo lambda que operam conjuntamente e ainda
-não foram verificados como totalmente fechados.*)
 
 (*
 Inductive ctx (t:pterm) :=
@@ -209,6 +202,12 @@ apply iff_stepl with (~((x \in E) \/ (x \in F))).
 Qed.
 (* end hide *)
 
+(** ** Operações com os pré-termos *)
+
+(** Para trabalhar com a validade dos termos, e tornar a mesma decidível, precisamos definir
+algumas operações que permitirão à máquina fazer as devidas buscas e comparações. Estas operações
+serão definidas mais abaixo.*)
+
 (** A definição da operação "variable opening", ou seja, abertura de variáveis é dada abaixo:*)
 
 Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
@@ -226,7 +225,7 @@ a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$
 
 
 (** Com isso, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
-como "open", onde u é o nome de uma variável qualquer e t é um pré-termo ,logo abaixo:*)
+como "open", onde u é o nome de uma variável qualquer e t é um pré-termo, logo abaixo:*)
 
 Definition open t u := open_rec 0 u t.
 
@@ -243,10 +242,12 @@ Notation "{ k ~> u } t" := (open_rec k u t) (at level 67).
 
 (** Notação para representar a abertura de um termo, substituindo as variáveis ligadas
 por qualquer tipo de pré-termo.*)
+
 Notation "t ^^ u" := (open t u) (at level 67). 
 
 (** Notação para representar abertura de um pré-termo utilizando uma variável livre
 x:*)
+
 Notation "t ^ x" := (open t (pterm_fvar x)).   
 
 (* begin hide *)
@@ -510,11 +511,11 @@ Proof.
 Qed.
 (* end hide *)
 
-(** Existe outra maneira de saber se um pré-termo é localmente fechado. ALém do uso do open, 
+(** Existe outra maneira de saber se um pré-termo é localmente fechado. Além do uso do open, 
 podemos definir um tipo recursivo chamado "lc_at". A ideia é trabalhar com os index's de modo
 a verificar se todos possuem ligação com uma abstrção, e caso sim, o termo será um termo fechado.
 Ser um termo fechado, como já dito, significa ser um termo válido para o $\lambda$-cálculo. A comparação
-realizada para os index-s refere-se a se estes são menores do que um valor k, ligado ao número de 
+realizada para os index's refere-se a se estes são menores do que um valor k, ligado ao número de 
 abstrações. *)
 
 (** Para um termo ser realmente localmente fechado segundo essa definição, ele precisa ser lc_at 0, 
@@ -821,7 +822,7 @@ Admitted.
 (* talvez *)
 
 (** Muitas vezes pode ser importante considerar se um pré-termo possui um index livre. Isto para checar
-por exemplo, se há a possibilidade de uma redução de uma abstração. Isso pode ser realizado por meio da definição abaixo?*)
+por exemplo, se há a possibilidade de uma redução de uma abstração. Isso pode ser realizado por meio da definição abaixo:*)
 
 Fixpoint has_free_index (k:nat) (t:pterm) : Prop :=
   match t with

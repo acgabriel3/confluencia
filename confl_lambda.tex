@@ -17,8 +17,8 @@ Vamos exemplificar:
 
 Dada a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
 que apresentamos. O index 0 neste caso indica que existem 0 passos para em uma aplicação
-substituir a variável ligada que o mesmo representa, estando esse index portanto ligado
-diretamente à abstração apresentada, e sendo dessa maneira válido semanticamento. Porém,
+substituir a variável ligada que o mesmo representa. Estando esse index portanto ligado
+diretamente à abstração apresentada, e sendo dessa maneira válido semanticamente. Porém,
 sintaticamente o index pode ser um valor iteiro k qualquer. Assim, por exemplo, ao 
 fazermos $\lambda.1$, estamos construindo semanticamente uma relação que não possui 
 significado válido. Queremos representar variáveis ligadas por meio de index's e neste caso o 
@@ -26,8 +26,9 @@ index 1 não está ligado à nenhuma abstração, portanto não representa uma v
 e não é válido para nossa representação.
 
  Assim podemos definir o conceito de pré-termo como sendo: Todo conjunto de símbolos sintaticamente
-válidos, que ainda não temos certeza acerca da validade semântica. Matematicamente os pré-termos 
-são definidos de acordo com a seguinte gramática: \begin{coqdoccode}
+válidos, que ainda não temos certeza acerca da validade semântica. Além disso, um pré-termo pode
+aparecer entre os termos anterior e resultante das operações realizadas no cálculo lambda.
+Matematicamente os pré-termos são definidos de acordo com a seguinte gramática: \begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Inductive} \coqdocvar{pterm} : \coqdockw{Set} :=\coqdoceol
@@ -42,20 +43,17 @@ são definidos de acordo com a seguinte gramática: \begin{coqdoccode}
 \coqdocindent{1.00em}
 \ensuremath{|} \coqdocvar{pterm\_labs}  : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdocvar{pterm}.\coqdoceol
 \coqdocemptyline
-\end{coqdoccode}
-Um pré-termo é um termo do cálculo lambda que possui em si indexs de de Bruijin que não foram
-substituídos. (esta definição está correta?)
-
-
-Definição alternativa:
-
-
-Um pré-termo é um conjunto de símbolos do cálculo lambda que operam conjuntamente e ainda
-não foram verificados como totalmente fechados.\begin{coqdoccode}
-\coqdocemptyline
 \coqdocemptyline
 \end{coqdoccode}
-A definição da operação ``variable opening'', ou seja, abertura de variáveis é dada abaixo:\begin{coqdoccode}
+\subsection{Operações com os pré-termos}
+
+
+
+ Para trabalhar com a validade dos termos, e tornar a mesma decidível, precisamos definir
+algumas operações que permitirão à máquina fazer as devidas buscas e comparações. Estas operações
+serão definidas mais abaixo.
+
+ A definição da operação ``variable opening'', ou seja, abertura de variáveis é dada abaixo:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Fixpoint} \coqdocvar{open\_rec} (\coqdocvar{k} : \coqdocvar{nat}) (\coqdocvar{u} : \coqdocvar{pterm}) (\coqdocvar{t} : \coqdocvar{pterm}) : \coqdocvar{pterm} :=\coqdoceol
@@ -80,7 +78,7 @@ nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, ass
 a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.
 
  Com isso, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
-como ``open'', onde u é o nome de uma variável qualquer e t é um pré-termo ,logo abaixo:\begin{coqdoccode}
+como ``open'', onde u é o nome de uma variável qualquer e t é um pré-termo, logo abaixo:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Definition} \coqdocvar{open} \coqdocvar{t} \coqdocvar{u} := \coqdocvar{open\_rec} 0 \coqdocvar{u} \coqdocvar{t}.\coqdoceol
@@ -100,12 +98,14 @@ definida como se segue:\begin{coqdoccode}
 \end{coqdoccode}
 Notação para representar a abertura de um termo, substituindo as variáveis ligadas
 por qualquer tipo de pré-termo.\begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Notation} "t \^{}\^{} u" := (\coqdocvar{open} \coqdocvar{t} \coqdocvar{u}) (\coqdoctac{at} \coqdockw{level} 67).\coqdoceol
 \coqdocemptyline
 \end{coqdoccode}
 Notação para representar abertura de um pré-termo utilizando uma variável livre
 x:\begin{coqdoccode}
+\coqdocemptyline
 \coqdocnoindent
 \coqdockw{Notation} "t \^{} x" := (\coqdocvar{open} \coqdocvar{t} (\coqdocvar{pterm\_fvar} \coqdocvar{x})).\coqdoceol
 \coqdocemptyline
@@ -228,11 +228,11 @@ foram utilizadas e exploradas neste trabalho. \begin{coqdoccode}
 \coqdocemptyline
 \coqdocemptyline
 \end{coqdoccode}
-Existe outra maneira de saber se um pré-termo é localmente fechado. ALém do uso do open, 
+Existe outra maneira de saber se um pré-termo é localmente fechado. Além do uso do open, 
 podemos definir um tipo recursivo chamado ``lc\_at''. A ideia é trabalhar com os index's de modo
 a verificar se todos possuem ligação com uma abstrção, e caso sim, o termo será um termo fechado.
 Ser um termo fechado, como já dito, significa ser um termo válido para o $\lambda$-cálculo. A comparação
-realizada para os index-s refere-se a se estes são menores do que um valor k, ligado ao número de 
+realizada para os index's refere-se a se estes são menores do que um valor k, ligado ao número de 
 abstrações. 
 
  Para um termo ser realmente localmente fechado segundo essa definição, ele precisa ser lc\_at 0, 
@@ -321,7 +321,7 @@ O mesmo segue para o termo marcado, por definição. \begin{coqdoccode}
 \coqdocemptyline
 \end{coqdoccode}
 Muitas vezes pode ser importante considerar se um pré-termo possui um index livre. Isto para checar
-por exemplo, se há a possibilidade de uma redução de uma abstração. Isso pode ser realizado por meio da definição abaixo?\begin{coqdoccode}
+por exemplo, se há a possibilidade de uma redução de uma abstração. Isso pode ser realizado por meio da definição abaixo:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Fixpoint} \coqdocvar{has\_free\_index} (\coqdocvar{k}:\coqdocvar{nat}) (\coqdocvar{t}:\coqdocvar{pterm}) : \coqdockw{Prop} :=\coqdoceol
