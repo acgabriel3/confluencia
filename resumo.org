@@ -1,0 +1,23 @@
+* Introdução
+
+O cálculo lambda é um formalismo importante que fundamenta o paradigma de programação funcional. Neste paradigma, um programa é uma função que, por sua vez pode ser composta para construir outros programas. A principal característica que diferencia o paradigma funcional do paradigma imperativo de programação é o fato de que a ordem da definição das funções é irrelevante, o que permite que o processo de avaliação de um programa ocorra de diferentes formas, i.e. em diferentes ordens. No entanto, estas diferentes ordens resultam sempre na mesma resposta, e esta propriedade é conhecida como confluência. Existem diversas provas de confluência para o cálculo lambda, e uma das mais populares é uma prova feita por H. Barendregt. Neste trabalho, apresentamos os primeiros resultados de um projeto que visa formalizar a prova de confluência do cálculo lambda sem tipos de Barendregt no assistente de provas Coq. 
+
+* Metodologia
+
+A metodologia utilizada para o desenvolvimento deste trabalho consistiu inicialmente no estudo do assistente de provas Coq. Este assistente é uma ferramenta de código aberto e que pode ser instalado em diversos sistemas operacionais. Em seguida, foi estudada a prova de Barendregt que pode ser obtida livremente em formato pdf na internet. Por fim, foi estudado um framework utilizado como ponto de partida para esta formalização. Este framework, conhecido como locally nameless representation, foi construído em Coq por A. Charguéraud. Estes estudos foram acompanhados por reuniões semanais presenciais, e depois do início da pandemia, as reuniões prosseguiram de forma remota.
+
+* Resultados
+
+Os resultados obtidos consistem na construção de uma extensão do framework feito por A. Charguéraud. Em particular, definimos uma extensão da gramática do cálculo lambda que inclui um construtor adicional para abstrações que permite o rastreio de beta-redexes marcados. Esta extensão é particularmente importante para a prova do lema da faixa (strip lemma). Adicionalmente foram definidas regras de beta redução para redexes marcados e não marcados, funções para manipulação destes redexes e predicados que caracterizam a gramática estendida de termos. Em particular foi construído um princípio de indução baseado no tamanho dos termos desta gramática estendida. Diversos resultados auxiliares que serão necessários para a prova do lema da faixa também foram provados. 
+
+* Conclusão
+
+O presente trabalho desenvolveu parte do formalismo necessário para a construção de uma formalização de uma prova de confluência do cálculo lambda que utiliza duas classes de variáveis: índices de DeBruijn para variáveis ligadas, e nomes para variáveis livres. Esta formalização está sendo construída no assistente de provas Coq, uma ferramenta de código aberto e baseada em uma lógica de ordem superior conhecida como cálculo de construções indutivas.
+
+* Palavras-chave
+
+Verificação formal; Assistente de prova Coq; Cálculo lambda; confluência
+
+* Referências
+
+cite:barendregtLCalculiTypes1992
