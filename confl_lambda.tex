@@ -1,34 +1,56 @@
-\coqlibrary{confl lambda}{Library }{confl\_lambda}
-
-\begin{coqdoccode}
-\coqdocemptyline
-\end{coqdoccode}
-\section{Locally Nameless Notation}
-
-\begin{coqdoccode}
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-A notação de nomes locais é definida de forma a trabalhar com index's ligados à abstrações
-para representar variáveis ligadas, e variáveis nomeadas para representar variáveis livres. Dessa
-forma podemos ter um conjunto de símbolos nesta notação que não sejam válidos semanticamente. 
-Vamos exemplificar: 
+\section{Introdução}
 
 
-Dada a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
-que apresentamos. O index 0 neste caso indica que existem 0 passos para em uma aplicação
-substituir a variável ligada que o mesmo representa. Estando esse index portanto ligado
-diretamente à abstração apresentada, e sendo dessa maneira válido semanticamente. Porém,
-sintaticamente o index pode ser um valor iteiro k qualquer. Assim, por exemplo, ao 
-fazermos $\lambda.1$, estamos construindo semanticamente uma relação que não possui 
-significado válido. Queremos representar variáveis ligadas por meio de index's e neste caso o 
-index 1 não está ligado à nenhuma abstração, portanto não representa uma variável ligada
-e não é válido para nossa representação.
 
- Assim podemos definir o conceito de pré-termo como sendo: Todo conjunto de símbolos sintaticamente
-válidos, que ainda não temos certeza acerca da validade semântica. Além disso, um pré-termo pode
-aparecer entre os termos anterior e resultante das operações realizadas no cálculo lambda.
-Matematicamente os pré-termos são definidos de acordo com a seguinte gramática: \begin{coqdoccode}
+ O cálculo lambda é um formalismo importante que fundamenta o
+    paradigma de programação funcional. Neste paradigma, um programa é
+    uma função que, por sua vez pode ser composta para construir
+    outros programas. A principal característica que diferencia o
+    paradigma funcional do paradigma imperativo de programação é o
+    fato de que a ordem da definição das funções é irrelevante, o que
+    permite que o processo de avaliação de um programa ocorra de
+    diferentes formas, i.e. em diferentes ordens. No entanto, estas
+    diferentes ordens resultam sempre na mesma resposta, e esta
+    propriedade é conhecida como confluência. Existem diversas provas
+    de confluência para o cálculo lambda, e uma das mais populares é
+    uma prova feita por H. Barendregt \cite{Ba92}. Neste trabalho, apresentamos os
+    primeiros resultados de um projeto que visa formalizar a prova de
+    confluência do cálculo lambda sem tipos de Barendregt no
+    assistente de provas Coq. 
+
+ A utilização de ferramentas formais, como assistentes de prova, para a construção de programas corretos é cada vez mais frequente. A preocupação em construir programas corretos, antes restrita basicamente a sistemas críticos como aqueles relacionados à equipamentos médicos, programas utilizados no sistema financeiro ou em aeronaves, hoje se aplica a praticamente qualquer programa de computador. Neste contexto, os assistentes de prova têm conquistado cada vez mais espaço porque são capazes de fornecer garantias absolutas obtidas por meio de provas matemáticas.
+
+
+O cálculo lambda constitui um importante modelo teórico de computação, baseado no conceito de função, e sobre o qual se constrói todo o paradigma funcional de programação. Atualmente diversos sistemas computacionais, que vão desde linguagens de programação, como Haskell e as linguagens da família ML, a assistentes de prova como Coq, PVS e Isabelle/HOL, são baseados neste modelo.
+
+
+Este projeto possui duas linhas fundamentais de pesquisa: Inicialmente, estudamos propriedades de extensões do cálculo lambda com substituições explícitas, que podem ser vistos como formalismos intermediários entre o cálculo lambda e suas implementações. Estes formalismos intermediários são utilizados tanto como metalinguagem para estudo do próprio cálculo lambda, como para estudos de suas implementações. Em particular, estudamos a propriedade da confluência que caracteriza o determinismo do processo computacional. 
+
+\subsection{O ambiente LNR}
+
+
+
+ A notação de nomes locais (LNR) consiste em um ambiente
+desenvolvido em Coq por A. Charguéraud \cite{Ch11}, onde as
+variáveis são divididas em duas classes: índices de DeBruijn que são
+utilizados para codificar as variáveis ligadas, e nomes (como usual
+para representar as variáveis livres). Dessa forma podemos ter um
+conjunto de símbolos nesta notação que não sejam válidos
+semanticamente.  Vamos exemplificar:
+
+
+Dada a abstração $\lambda.0$ sabemos que o índice 0 representa a
+variável ligada à abstração que apresentamos. Estando esse índice
+portanto ligado diretamente à abstração apresentada, e sendo dessa
+maneira válido semanticamente. Porém, sintaticamente o índice pode ser
+um valor iteiro k qualquer. Assim, por exemplo, ao fazermos
+$\lambda.1$, estamos construindo uma expressão que não é válida pois o
+índice não está ligado a nenhum abstrator. Queremos representar
+variáveis ligadas por meio de índices, e neste caso o index 1 não está
+ligado à nenhuma abstração, portanto não representa uma variável
+ligada e não é válido para nossa representação.
+
+ Assim podemos definir o conceito de pré-termo como sendo a gramática contendo os seguintes construtores: \begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Inductive} \coqdocvar{pterm} : \coqdockw{Set} :=\coqdoceol
@@ -43,17 +65,17 @@ Matematicamente os pré-termos são definidos de acordo com a seguinte gramátic
 \coqdocindent{1.00em}
 \ensuremath{|} \coqdocvar{pterm\_labs}  : \coqdocvar{pterm} \ensuremath{\rightarrow} \coqdocvar{pterm}.\coqdoceol
 \coqdocemptyline
+\end{coqdoccode}
+O construtor \coqdocvar{pterm\_bvar} é utilizado para representar as variáveis ligadas, \coqdocvar{pterm\_fvar} para variáveis livres, \coqdocvar{pterm\_app} é o construtor de uma aplicação, \coqdocvar{pterm\_abs} é o construtor de abstrações e \coqdocvar{pterm\_labs} é o construtor de abstrações marcadas. \begin{coqdoccode}
+\coqdocemptyline
 \coqdocemptyline
 \end{coqdoccode}
-\subsection{Operações com os pré-termos}
-
-
-
- Para trabalhar com a validade dos termos, e tornar a mesma decidível, precisamos definir
-algumas operações que permitirão à máquina fazer as devidas buscas e comparações. Estas operações
-serão definidas mais abaixo.
-
- A definição da operação ``variable opening'', ou seja, abertura de variáveis é dada abaixo:\begin{coqdoccode}
+Para trabalhar apenas com termos válidos, i.e. expressões sem
+índices de DeBruijn que não estejam ligados a nenhuma abstração ou
+substituição, precisamos definir algumas operações que permitirão à
+máquina fazer as devidas buscas e comparações. Estas operações serão
+definidas mais abaixo.  A definição da operação ``variable opening'', ou
+seja, abertura de variáveis é dada abaixo:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Fixpoint} \coqdocvar{open\_rec} (\coqdocvar{k} : \coqdocvar{nat}) (\coqdocvar{u} : \coqdocvar{pterm}) (\coqdocvar{t} : \coqdocvar{pterm}) : \coqdocvar{pterm} :=\coqdoceol
@@ -73,18 +95,18 @@ serão definidas mais abaixo.
 \coqdockw{end}.\coqdoceol
 \coqdocemptyline
 \end{coqdoccode}
-Esta operação é responsável por substituir todos os índices ``k'', por uma variável com
-nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, assim, ao aplicar
-a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.
-
- Com isso, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
+Com isso, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
 como ``open'', onde u é o nome de uma variável qualquer e t é um pré-termo, logo abaixo:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
 \coqdockw{Definition} \coqdocvar{open} \coqdocvar{t} \coqdocvar{u} := \coqdocvar{open\_rec} 0 \coqdocvar{u} \coqdocvar{t}.\coqdoceol
 \coqdocemptyline
 \end{coqdoccode}
-Esta definição será extremamente útil nas provas mais abaixo, devido à maior facilidade com relação
+Esta operação é responsável por substituir todos os índices ``k'', por uma variável com
+nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, assim, ao aplicar
+a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.
+
+ Esta definição será extremamente útil nas provas mais abaixo, devido à maior facilidade com relação
 à trabalhar com qualquer index k, e para garantir que estamos trabalhando com termos válidos.
 
  De qualquer forma, a operação como explicada mais acima, onde k é o index de De Bruijin,
@@ -148,9 +170,7 @@ que após uma abertura no index 0, por uma variável nomeada livre x, torna-se u
 A definição está logo abaixo:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
-\coqdockw{Definition} \coqdocvar{body} \coqdocvar{t} :=\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{\ensuremath{\exists}} \coqdocvar{L}, \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{t} \^{} \coqdocvar{x}).\coqdoceol
+\coqdockw{Definition} \coqdocvar{body} \coqdocvar{t} := \coqdoctac{\ensuremath{\exists}} \coqdocvar{L}, \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{t} \^{} \coqdocvar{x}).\coqdoceol
 \coqdocemptyline
 \end{coqdoccode}
 Perceba que a definição de body foi utilizada na definição recursiva de termo, para
@@ -199,12 +219,7 @@ si uma abstração marcada, aonde após uma abertura recursiva do index 0 com um
 livre qualquer x, torna-se um termo marcado:\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
-\coqdockw{Definition} \coqdocvar{lbody} \coqdocvar{t} :=\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{\ensuremath{\exists}} \coqdocvar{L}, \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lterm} (\coqdocvar{t} \^{} \coqdocvar{x}).\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Hint Constructors} \coqdocvar{lterm} \coqdocvar{term}.\coqdoceol
+\coqdockw{Definition} \coqdocvar{lbody} \coqdocvar{t} := \coqdoctac{\ensuremath{\exists}} \coqdocvar{L}, \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lterm} (\coqdocvar{t} \^{} \coqdocvar{x}).\coqdoceol
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
@@ -213,19 +228,29 @@ livre qualquer x, torna-se um termo marcado:\begin{coqdoccode}
 
 
 
- Para auxiliar nas provas são necessárias algumas definições no assistente de provas. Existem casos em que é melhor
-seguir uma prova por indução na estrutura, nestes casos, o assistente consegue lidar bem com seus pŕoprios comandos. No entanto,
-quando precisamos trabalhar com provas no tamanho dos termos, muitas vezes são necessárias definições para contar o tamanho do
-tipo que estamos lidando. E posteriormente, essas definições são utilizadas para definir induções no tamanho específicas para o 
-domínio em que estamos trabalhando. Não vamos apresentar estas definições neste trabalho, por serem muito técnicas e poderem
-ser facilmente encontradas em outros trabalhos da literatura como em \symbol{92}cite\{paulin1993inductive\} que aborda a construção de
-provas indutivas usando o Coq. 
+ Para auxiliar nas provas são necessárias algumas definições no
+assistente de provas. Existem casos em que é melhor seguir uma prova
+por indução na estrutura, nestes casos, o assistente consegue lidar
+bem com seus pŕoprios comandos. No entanto, quando precisamos
+trabalhar com provas no tamanho dos termos, muitas vezes são
+necessárias definições para contar o tamanho do tipo que estamos
+lidando. E posteriormente, essas definições são utilizadas para
+definir induções no tamanho específicas para o domínio em que estamos
+trabalhando. Não vamos apresentar estas definições neste trabalho, por
+serem muito técnicas e poderem ser facilmente encontradas em outros
+trabalhos da literatura como em \cite{Paulin93} que aborda
+a construção de provas indutivas usando o Coq. 
 
- No trabalho de \symbol{92}cite\{Ch11\} e na notação de nomes locais é necessária a definição de operações de
-abertura e fechamento dos termos. As operações de abertura e fechamento manipulam os index's e nomes, e têm como objetivo controlar
-e tornar possível a decisão de se um termo é ou não fechado, ou seja, possui uma sintaxe válida. Demonstramos como as operações de abertura (open)
-sçao definidas, mas não iremos mostrar essas definições para as operações de fechamento
-neste trabalho, pois as mesmas podem ser encontradas no próprio trabalho de \symbol{92}cite\{Ch11\}, e não foram utilizadas neste trabalho. \begin{coqdoccode}
+ No trabalho de \cite{Ch11} e na notação de nomes locais é
+necessária a definição de operações de abertura e fechamento dos
+termos. As operações de abertura e fechamento manipulam os index's e
+nomes, e têm como objetivo controlar e tornar possível a decisão de se
+um termo é ou não fechado, ou seja, possui uma sintaxe
+válida. Demonstramos como as operações de abertura (open) são
+definidas, mas não iremos mostrar essas definições para as operações
+de fechamento neste trabalho, pois as mesmas podem ser encontradas no
+próprio trabalho de \cite{Ch11}, e não foram utilizadas em nossa
+provas. \begin{coqdoccode}
 \coqdocemptyline
 \coqdocemptyline
 \end{coqdoccode}
@@ -414,73 +439,8 @@ estes termos seguem algumas restrições. Podemos dizer que, estes termos são o
 de uma beta redução em um redex específico de um termo e estes dois termos participam portanto de uma relação. Como a definição de termo 
 é recursiva, e uma aplicação ocorre entre dois termos, então precisamos deixar claro para a máquina que, primeiro as beta reduções que ocorrerem
 tanto à esquerda, quanto à direita, em uma aplicação relacionam o termo anterior, ao termo resultante. Além disso, também precisamos relacionar
-os termos resultantes de uma redução em uma abstração, estão relacionados com os termos que possuiam a abstração. Desse modo, definimos como
-abaixo o feixo contextual transitivo para o conjunto dos termos, e para o conjunto um pouco mais extenso dos termos marcados. \begin{coqdoccode}
+os termos resultantes de uma redução em uma abstração, estão relacionados com os termos que possuiam a abstração. \begin{coqdoccode}
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{contextual\_closure} (\coqdocvar{R}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{redex} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{s}, \coqdocvar{R} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdocvar{contextual\_closure} \coqdocvar{R} \coqdocvar{t} \coqdocvar{s}\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{app\_left} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{t'} \coqdocvar{u}, \coqdocvar{contextual\_closure} \coqdocvar{R} \coqdocvar{t} \coqdocvar{t'} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{u} \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{15.00em}
-\coqdocvar{contextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_app} \coqdocvar{t} \coqdocvar{u}) (\coqdocvar{pterm\_app} \coqdocvar{t'} \coqdocvar{u})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{app\_right} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{u'}, \coqdocvar{contextual\_closure} \coqdocvar{R} \coqdocvar{u} \coqdocvar{u'} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{t} \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{15.50em}
-\coqdocvar{contextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_app} \coqdocvar{t} \coqdocvar{u}) (\coqdocvar{pterm\_app} \coqdocvar{t} \coqdocvar{u'})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{abs\_in} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{t'} \coqdocvar{L}, (\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{contextual\_closure} \coqdocvar{R} (\coqdocvar{t}\^{}\coqdocvar{x}) (\coqdocvar{t'}\^{}\coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{15.50em}
-\coqdocvar{contextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_abs} \coqdocvar{t}) (\coqdocvar{pterm\_abs} \coqdocvar{t'}).\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{lcontextual\_closure} (\coqdocvar{R}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{lredex} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{s}, \coqdocvar{R} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdocvar{lcontextual\_closure} \coqdocvar{R} \coqdocvar{t} \coqdocvar{s}\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{lapp\_left} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{t'} \coqdocvar{u}, \coqdocvar{lcontextual\_closure} \coqdocvar{R} \coqdocvar{t} \coqdocvar{t'} \ensuremath{\rightarrow} \coqdocvar{lterm} \coqdocvar{u} \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{15.00em}
-\coqdocvar{lcontextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_app} \coqdocvar{t} \coqdocvar{u}) (\coqdocvar{pterm\_app} \coqdocvar{t'} \coqdocvar{u})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{lapp\_right} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{u} \coqdocvar{u'}, \coqdocvar{lcontextual\_closure} \coqdocvar{R} \coqdocvar{u} \coqdocvar{u'} \ensuremath{\rightarrow} \coqdocvar{lterm} \coqdocvar{t} \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{15.50em}
-\coqdocvar{lcontextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_app} \coqdocvar{t} \coqdocvar{u}) (\coqdocvar{pterm\_app} \coqdocvar{t} \coqdocvar{u'})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{labs\_in} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{t'} \coqdocvar{L}, (\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{contextual\_closure} \coqdocvar{R} (\coqdocvar{t}\^{}\coqdocvar{x}) (\coqdocvar{t'}\^{}\coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{15.50em}
-\coqdocvar{lcontextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_abs} \coqdocvar{t}) (\coqdocvar{pterm\_abs} \coqdocvar{t'})\coqdoceol
-\coqdocindent{1.00em}
-\ensuremath{|} \coqdocvar{l\_abs\_in} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{t'} \coqdocvar{L}, (\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{x} \symbol{92}\coqdocvar{notin} \coqdocvar{L} \ensuremath{\rightarrow} \coqdocvar{lcontextual\_closure} \coqdocvar{R} (\coqdocvar{t}\^{}\coqdocvar{x}) (\coqdocvar{t'}\^{}\coqdocvar{x})) \ensuremath{\rightarrow}\coqdoceol
-\coqdocindent{15.50em}
-\coqdocvar{lcontextual\_closure} \coqdocvar{R} (\coqdocvar{pterm\_labs} \coqdocvar{t}) (\coqdocvar{pterm\_labs} \coqdocvar{t'}).\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-De outra forma, também é necessário definir a enésima beta redução. A enésima beta redução consiste na aplicação de n beta reduções
-em um termo. Para definir esta operação para a máquina, precisamos de uma definição auxiliar de aplicação transitiva em um determinado termo,
-por meio do conceito de relação. Basicamente precisamos fazer com que a máquina percorra recursivamente um termo, dentre os seus diversos pré-termos,
-até encontrar todas as beta reduções que fazem um termo a, chegar à um termo b, após n beta reduções. Os casos base são onde existe apenas uma
-variável e ela reduz a ela mesma, e uma redução específica de a para b. Abaixo temos duas definições possíveis para essa propriedade, e uma prova
-de sua equivalência. \begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{refltrans} (\coqdoctac{red}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{reflex}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a}, \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{a}\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{atleast1}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b}, \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{b}\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{rtrans}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b} \coqdocvar{c}, \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{b} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{refltrans} \coqdoctac{red} \coqdocvar{a} \coqdocvar{c}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Inductive} \coqdocvar{refltrans'} (\coqdoctac{red}: \coqdocvar{Rel} \coqdocvar{pterm}) : \coqdocvar{Rel} \coqdocvar{pterm} :=\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{refl}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a}, \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{a} \coqdocvar{a}\coqdoceol
-\coqdocnoindent
-\ensuremath{|} \coqdocvar{rtrans'}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{b} \coqdocvar{c}, \coqdoctac{red} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{b} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{refltrans'} \coqdoctac{red} \coqdocvar{a} \coqdocvar{c}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{refltrans\_equiv}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{R}: \coqdocvar{Rel} \coqdocvar{pterm}) (\coqdocvar{a} \coqdocvar{b}: \coqdocvar{pterm}), \coqdocvar{refltrans} \coqdocvar{R} \coqdocvar{a} \coqdocvar{b} \ensuremath{\leftrightarrow} \coqdocvar{refltrans'} \coqdocvar{R} \coqdocvar{a} \coqdocvar{b}.\coqdoceol
 \coqdocemptyline
 \end{coqdoccode}
 Assim podemos definir as operações de beta redução, e da enésima beta redução. rule\_b se refere à definição de uma relação
@@ -615,26 +575,9 @@ deste lema está como abaixo, e não é tão complexo realizar a sua prova no co
 \coqdocnoindent
 \coqdockw{Lemma} \coqdocvar{phi\_term}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t}, \coqdocvar{lterm} \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{term} (\coqdocvar{phi} \coqdocvar{t}).\coqdoceol
 \coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
 \end{coqdoccode}
 Na prova de barendregt para a confluência do cálculo lambda também é muito importante provar a propriedade de que, se um termo M reduz para um termo N, então o resultado da
- aplicação da função phi em M, também reduz para o resultado da aplicação da função phi no termo N. A difinição deste lema está logo abaixo.\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{phi\_prop}: \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N} : \coqdocvar{pterm}, \coqdocvar{lterm} \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{lterm} \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M} -->>\coqdocvar{lB} \coqdocvar{N}) \ensuremath{\rightarrow} (\coqdocvar{phi} \coqdocvar{M}) -->>\coqdocvar{B} (\coqdocvar{phi} \coqdocvar{N}).\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
+ aplicação da função phi em M, também reduz para o resultado da aplicação da função phi no termo N.\begin{coqdoccode}
 \coqdocemptyline
 \coqdocemptyline
 \end{coqdoccode}
@@ -642,28 +585,6 @@ Também possuímos outra propriedade, que será muito importante para a prova da
 fato de que se M reduz para N em n passos, sendo M e N termos pertencentes ao conjunto dos termos marcados, então o resultado de aplicar a função
 de apagar marcas (erase) em M reduz ao resultado da aplicação da operação de apagar marcas em N. A definição para este lema está logo abaixo em 
 duas possíveis formas. Até o momento, não conseguimos completar nenhuma das duas provas ainda no coq.\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{erase\_prop1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N}: \coqdocvar{pterm}, \coqdocvar{term} \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M} -->\coqdocvar{B} \coqdocvar{N}) \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{M'} \coqdocvar{N'}, (\coqdocvar{erase} \coqdocvar{M'} = \coqdocvar{M}) \ensuremath{\land} (\coqdocvar{erase} \coqdocvar{N'} = \coqdocvar{N}) \ensuremath{\rightarrow}  (\coqdocvar{M'} -->\coqdocvar{lB} \coqdocvar{N'}).\coqdoceol
-\coqdocnoindent
-\coqdockw{Proof}.\coqdoceol
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{erase\_prop} : \coqdockw{\ensuremath{\forall}} \coqdocvar{M} \coqdocvar{N} \coqdocvar{M'} \coqdocvar{N'}: \coqdocvar{pterm}, \coqdocvar{term} \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{term} \coqdocvar{N} \ensuremath{\rightarrow} (\coqdocvar{M} -->>\coqdocvar{B} \coqdocvar{N}) \ensuremath{\rightarrow} \coqdocvar{erase} \coqdocvar{M'} = \coqdocvar{M} \ensuremath{\rightarrow} \coqdocvar{erase} \coqdocvar{N'} = \coqdocvar{N} \ensuremath{\rightarrow}  (\coqdocvar{M'} -->>\coqdocvar{lB} \coqdocvar{N'}).\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-Assim, também precisamos provar que dado um mesmo termo t, se t1 é o termo resultante da aplicação da função de apagar marcas
-em t, e t2 o resultado da aplicação da função phi em t, então t1 reduz em n passos para t2. Essa definição vai ser um artifício importante
-na prova do strip-lemma, ao seguir a estratégia de barendregt. A definição se encontra logo abaixo, mas ainda não conseguimos a formalizar
-em coq.\begin{coqdoccode}
-\coqdocemptyline
-\coqdocnoindent
-\coqdockw{Lemma} \coqdocvar{erase\_phi}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{erase}(\coqdocvar{t}) = \coqdocvar{t1} \ensuremath{\rightarrow} \coqdocvar{phi}(\coqdocvar{t}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t2}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
 \coqdocemptyline
@@ -736,171 +657,7 @@ para nos ajudar a completar a prova mesmo de maneira generalizada, mas também a
  Dado esse contexto, dois caminhos podem ser seguidos: No primeiro, a definição do teorema poderia ser refeita, de uma
 maneira menos generalizada, abarcando as marcas e utilizando alguma ideia semelhante à apresentada na função lredex\_count. O segundo 
 caminho, seria a construção de diversos lemas auxiliares que permitiriam com que o teorema geral pudesse ser provado. Na realidade
-o sucesso em realizar esta prova provavelmente depende um caminho intermediário entre essas duas opções. Atualmente, seguimos o
-caminho da criação de diversos lemas auxiliares, como vamos explanar mais abaixo. Mas, em vistas de ilustrar uma opção de prova 
-diferente, apresentamos abaixo uma definição menos genralizada para o teorema como exemplo: 
-
- $ Theorem strip_lemma: forall  lterm_one t', term t t1 t2, erase(t') = t -> phi(t') = t1 ->
-t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3. $ 
-
- Onde lterm\_one é a definição de um termo marcado qualquer, que possui apenas uma marca. t' é um termo com as mesmas propriedades
-estruturais de t, exceto pelo redex marcado, sendo isto definido pela igualdade $ erase(t') = t $ e t1 é o termo cuja estrutura
-reduz de t com uma beta redução no redex marcado, o que é nesse caso definido pela igualdade $ phi(t') = t1 $. Assim, como t é um
-termo qualquer com ao menos um redex, a prova é suficiente para o strip\_lemma. Lembramos que essa pode não ser a melhor abordagem para
-um assistente de provas, mas exemplifica muito bem o que \symbol{92}cite\{barendregt\} (melhorar citação) fez em sua prova, podendo ser tomado como base para o sucesso
-na formalização dessa prova. 
-
-\subsubsection{Prova formal do strip\_lemma, com a definição generalizada}
-
-\begin{coqdoccode}
+o sucesso em realizar esta prova provavelmente depende um caminho intermediário entre essas duas opções. \begin{coqdoccode}
 \coqdocemptyline
-\coqdocnoindent
-\coqdockw{Theorem} \coqdocvar{strip\_lemma}: \coqdockw{\ensuremath{\forall}}  \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t} -->\coqdocvar{B} \coqdocvar{t1} \ensuremath{\rightarrow} \coqdocvar{t} -->>\coqdocvar{B} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdoctac{\ensuremath{\exists}} \coqdocvar{t3}, \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t3} \ensuremath{\land} \coqdocvar{t2} -->>\coqdocvar{B} \coqdocvar{t3}.\coqdoceol
-\coqdocnoindent
-\coqdockw{Proof}.\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{intros} \coqdocvar{t} \coqdocvar{t1} \coqdocvar{t2} \coqdocvar{H1} \coqdocvar{H2}.\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-Iniciamos com a indução na estrutura da beta redução em um passo (de t para t1 na notação utilizada):\begin{coqdoccode}
-\coqdocemptyline
-\coqdocindent{1.00em}
-\coqdoctac{induction} \coqdocvar{H1}.\coqdoceol
-\coqdocemptyline
-\end{coqdoccode}
-A prova se divide em 4 ramos, e podemos perceber que nenhum deles é um caso simples. Os detalhes das operações de prova mais
-abaixo são irrelevantes para os objetivos deste relatório, e por isso não serão apresentados. Incentivamos que as operações sejam
-copiadas, caso haja o interesse em continuar a prova deste ponto de partida.\begin{coqdoccode}
-\coqdocemptyline
-\coqdocindent{1.00em}
-- \coqdoctac{inversion} \coqdocvar{H}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{apply} \coqdocvar{refltrans\_equiv} \coqdoctac{in} \coqdocvar{H2}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdocvar{remember} (\coqdocvar{t1} \^{}\^{} \coqdocvar{u}) \coqdockw{as} \coqdocvar{b}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{generalize}  \coqdoctac{dependent} \coqdocvar{b}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{induction} \coqdocvar{H2}.\coqdoceol
-\coqdocindent{2.00em}
-+ \coqdoctac{\ensuremath{\exists}} (\coqdocvar{t1} \^{}\^{} \coqdocvar{u}); \coqdoctac{split}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdoctac{apply} \coqdocvar{reflex}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdoctac{apply} \coqdocvar{atleast1}.\coqdoceol
-\coqdocindent{4.00em}
-\coqdoctac{apply} \coqdocvar{redex}.\coqdoceol
-\coqdocindent{4.00em}
-\coqdoctac{assumption}.\coqdoceol
-\coqdocindent{2.00em}
-+ \coqdoctac{inversion} \coqdocvar{H}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{rewrite} \ensuremath{\leftarrow} \coqdocvar{H3} \coqdoctac{in} \coqdocvar{H}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{clear} \coqdocvar{H0} \coqdocvar{H1} \coqdocvar{H3}.\coqdoceol
-\coqdocemptyline
-\coqdocindent{3.00em}
-\coqdoctac{inversion} \coqdocvar{H2}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdocvar{admit}.\coqdoceol
-\coqdocindent{2.00em}
-+ \coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{apply} \coqdocvar{open\_rec\_inj} \coqdoctac{in} \coqdocvar{H3}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{destruct} \coqdocvar{H3} \coqdockw{as} [\coqdocvar{Heq1} \coqdocvar{Heq2}]; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{clear} \coqdocvar{H4} \coqdocvar{H6}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{induction} \coqdocvar{H2}.\coqdoceol
-\coqdocindent{3.00em}
-\ensuremath{\times} \coqdocvar{Admitted}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\end{coqdoccode}
-A definição do lemma erase\_lbeta\_2313 trabalha com a equivalência, dados termos de mesma estrutura porém dois com
-marcas e dois sem marcas, da redução destes pares de termos pelas beta reduções marcadas e não marcadas. Essa definição é
-necessária para trabalhar com a marca e a acompanhar de modo a ser possível enxergar os estados da estrutura com a qual estamos
-trabalhando. \begin{coqdoccode}
-\coqdocemptyline
-\coqdocindent{2.00em}
-\coqdockw{Lemma} \coqdocvar{erase\_lbeta\_2313}: \coqdockw{\ensuremath{\forall}} \coqdocvar{t1} \coqdocvar{t2}, \coqdocvar{t1} -->>\coqdocvar{B} \coqdocvar{t2} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t1'} \coqdocvar{t2'}, \coqdocvar{erase}(\coqdocvar{t1'}) = \coqdocvar{t1} \ensuremath{\land} \coqdocvar{erase}(\coqdocvar{t2'}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t1'} -->>\coqdocvar{lB} \coqdocvar{t2'}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdockw{Proof}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdocvar{Admitted}.\coqdoceol
-\coqdocemptyline
-\coqdocindent{2.00em}
-\coqdoctac{assert} (\coqdocvar{H'}: \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t1}) \coqdocvar{u} -->>\coqdocvar{B} \coqdocvar{t2}).\coqdoceol
-\coqdocindent{2.00em}
-\{\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{apply} \coqdocvar{erase\_lbeta\_2313}.\coqdoceol
-\coqdocindent{2.00em}
-\}\coqdoceol
-\coqdocindent{2.50em}
-\coqdoctac{in} \coqdocvar{H2} \coqdockw{with} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t1}) \coqdocvar{u}) \coqdocvar{\_}.\coqdoceol
-\coqdocemptyline
-\coqdocemptyline
-\coqdocindent{1.00em}
-\coqdoctac{assert} (\coqdocvar{H2'} := \coqdocvar{H2}).\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{assert} (\coqdockw{\ensuremath{\forall}} \coqdocvar{t'}, \coqdocvar{erase}(\coqdocvar{t'}) = \coqdocvar{t} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t2'}, \coqdocvar{erase}(\coqdocvar{t2'}) = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{t'} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
-\coqdocindent{1.00em}
-\{\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{apply} \coqdocvar{erase\_lbeta}; \coqdoctac{assumption}.\coqdoceol
-\coqdocindent{1.00em}
-\}\coqdoceol
-\coqdocindent{1.00em}
-\coqdoctac{inversion} \coqdocvar{H1}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{1.00em}
-- \coqdoctac{inversion} \coqdocvar{H0}; \coqdoctac{subst}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{assert} (\coqdocvar{erase} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u}) = \coqdocvar{pterm\_app} (\coqdocvar{pterm\_abs} \coqdocvar{t0}) \coqdocvar{u} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{t2'}, \coqdocvar{erase} \coqdocvar{t2'} = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
-\coqdocindent{2.00em}
-\{\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{apply} \coqdocvar{H}.\coqdoceol
-\coqdocindent{2.00em}
-\}\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{clear} \coqdocvar{H}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{assert} (\coqdocvar{erase} (\coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u}) = \coqdocvar{pterm\_app} (\coqdocvar{pterm\_abs} \coqdocvar{t0}) \coqdocvar{u}).\coqdoceol
-\coqdocindent{2.00em}
-\{\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{simpl}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{rewrite} \coqdocvar{body\_erase}.\coqdoceol
-\coqdocindent{3.00em}
-- \coqdoctac{rewrite} \coqdocvar{term\_erase}.\coqdoceol
-\coqdocindent{4.00em}
-+ \coqdoctac{reflexivity}.\coqdoceol
-\coqdocindent{4.00em}
-+ \coqdoctac{assumption}.\coqdoceol
-\coqdocindent{3.00em}
-- \coqdoctac{assumption}.\coqdoceol
-\coqdocindent{2.00em}
-\}\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{assert} (\coqdockw{\ensuremath{\forall}} \coqdocvar{t2'} : \coqdocvar{pterm}, \coqdocvar{erase} \coqdocvar{t2'} = \coqdocvar{t2} \ensuremath{\rightarrow} \coqdocvar{pterm\_app} (\coqdocvar{pterm\_labs} \coqdocvar{t0}) \coqdocvar{u} -->>\coqdocvar{lB} \coqdocvar{t2'}).\coqdoceol
-\coqdocindent{2.00em}
-\{\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{apply} \coqdocvar{H5}.\coqdoceol
-\coqdocindent{3.00em}
-\coqdoctac{assumption}.\coqdoceol
-\coqdocindent{2.00em}
-\}\coqdoceol
-\coqdocindent{2.00em}
-\coqdoctac{clear} \coqdocvar{H} \coqdocvar{H5}.\coqdoceol
-\coqdocindent{2.00em}
-\coqdocvar{Admitted}.\coqdoceol
 \coqdocemptyline
 \end{coqdoccode}

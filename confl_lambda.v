@@ -27,30 +27,52 @@ Notation "x == y" := (eq_var_dec x y) (at level 67).
 Notation "i === j" := (Peano_dec.eq_nat_dec i j) (at level 67).
 (* end hide *)
 
-(** * Locally Nameless Notation *)
+(** * Introdução *)
 
-(*é
-necessário definir o que é uma variável livre e uma variável ligada?*)
+    (** O cálculo lambda é um formalismo importante que fundamenta o
+    paradigma de programação funcional. Neste paradigma, um programa é
+    uma função que, por sua vez pode ser composta para construir
+    outros programas. A principal característica que diferencia o
+    paradigma funcional do paradigma imperativo de programação é o
+    fato de que a ordem da definição das funções é irrelevante, o que
+    permite que o processo de avaliação de um programa ocorra de
+    diferentes formas, i.e. em diferentes ordens. No entanto, estas
+    diferentes ordens resultam sempre na mesma resposta, e esta
+    propriedade é conhecida como confluência. Existem diversas provas
+    de confluência para o cálculo lambda, e uma das mais populares é
+    uma prova feita por H. Barendregt %\cite{Ba92}%. Neste trabalho, apresentamos os
+    primeiros resultados de um projeto que visa formalizar a prova de
+    confluência do cálculo lambda sem tipos de Barendregt no
+    assistente de provas Coq. *)
 
-(** A notação de nomes locais é definida de forma a trabalhar com index's ligados à abstrações
-para representar variáveis ligadas, e variáveis nomeadas para representar variáveis livres. Dessa
-forma podemos ter um conjunto de símbolos nesta notação que não sejam válidos semanticamente. 
-Vamos exemplificar: 
+(** A utilização de ferramentas formais, como assistentes de prova, para a construção de programas corretos é cada vez mais frequente. A preocupação em construir programas corretos, antes restrita basicamente a sistemas críticos como aqueles relacionados à equipamentos médicos, programas utilizados no sistema financeiro ou em aeronaves, hoje se aplica a praticamente qualquer programa de computador. Neste contexto, os assistentes de prova têm conquistado cada vez mais espaço porque são capazes de fornecer garantias absolutas obtidas por meio de provas matemáticas.
 
-Dada a abstração $\lambda.0$ sabemos que o index 0 representa a variável ligada à abstração
-que apresentamos. O index 0 neste caso indica que existem 0 passos para em uma aplicação
-substituir a variável ligada que o mesmo representa. Estando esse index portanto ligado
-diretamente à abstração apresentada, e sendo dessa maneira válido semanticamente. Porém,
-sintaticamente o index pode ser um valor iteiro k qualquer. Assim, por exemplo, ao 
-fazermos $\lambda.1$, estamos construindo semanticamente uma relação que não possui 
-significado válido. Queremos representar variáveis ligadas por meio de index's e neste caso o 
-index 1 não está ligado à nenhuma abstração, portanto não representa uma variável ligada
-e não é válido para nossa representação.*)
+O cálculo lambda constitui um importante modelo teórico de computação, baseado no conceito de função, e sobre o qual se constrói todo o paradigma funcional de programação. Atualmente diversos sistemas computacionais, que vão desde linguagens de programação, como Haskell e as linguagens da família ML, a assistentes de prova como Coq, PVS e Isabelle/HOL, são baseados neste modelo.
 
-(** Assim podemos definir o conceito de pré-termo como sendo: Todo conjunto de símbolos sintaticamente
-válidos, que ainda não temos certeza acerca da validade semântica. Além disso, um pré-termo pode
-aparecer entre os termos anterior e resultante das operações realizadas no cálculo lambda.
-Matematicamente os pré-termos são definidos de acordo com a seguinte gramática: *)
+Este projeto possui duas linhas fundamentais de pesquisa: Inicialmente, estudamos propriedades de extensões do cálculo lambda com substituições explícitas, que podem ser vistos como formalismos intermediários entre o cálculo lambda e suas implementações. Estes formalismos intermediários são utilizados tanto como metalinguagem para estudo do próprio cálculo lambda, como para estudos de suas implementações. Em particular, estudamos a propriedade da confluência que caracteriza o determinismo do processo computacional. *)
+
+(** ** O ambiente LNR *)
+
+(** A notação de nomes locais (LNR) consiste em um ambiente
+desenvolvido em Coq por A. Charguéraud %\cite{Ch11}%, onde as
+variáveis são divididas em duas classes: índices de DeBruijn que são
+utilizados para codificar as variáveis ligadas, e nomes (como usual
+para representar as variáveis livres). Dessa forma podemos ter um
+conjunto de símbolos nesta notação que não sejam válidos
+semanticamente.  Vamos exemplificar:
+
+Dada a abstração $\lambda.0$ sabemos que o índice 0 representa a
+variável ligada à abstração que apresentamos. Estando esse índice
+portanto ligado diretamente à abstração apresentada, e sendo dessa
+maneira válido semanticamente. Porém, sintaticamente o índice pode ser
+um valor iteiro k qualquer. Assim, por exemplo, ao fazermos
+$\lambda.1$, estamos construindo uma expressão que não é válida pois o
+índice não está ligado a nenhum abstrator. Queremos representar
+variáveis ligadas por meio de índices, e neste caso o index 1 não está
+ligado à nenhuma abstração, portanto não representa uma variável
+ligada e não é válido para nossa representação.*)
+
+(** Assim podemos definir o conceito de pré-termo como sendo a gramática contendo os seguintes construtores: *)
 
 Inductive pterm : Set :=
   | pterm_bvar : nat -> pterm
@@ -59,11 +81,8 @@ Inductive pterm : Set :=
   | pterm_abs  : pterm -> pterm
   | pterm_labs  : pterm -> pterm.
 
-(*
-Inductive ctx (t:pterm) :=
-| ctx_empty: t.
-???
- *)
+(** O construtor [pterm_bvar] é utilizado para representar as variáveis ligadas, [pterm_fvar] para variáveis livres, [pterm_app] é o construtor de uma aplicação, [pterm_abs] é o construtor de abstrações e [pterm_labs] é o construtor de abstrações marcadas. *)
+
 (* begin hide *)
 Fixpoint fv (t : pterm) : vars :=
   match t with
@@ -202,13 +221,12 @@ apply iff_stepl with (~((x \in E) \/ (x \in F))).
 Qed.
 (* end hide *)
 
-(** ** Operações com os pré-termos *)
-
-(** Para trabalhar com a validade dos termos, e tornar a mesma decidível, precisamos definir
-algumas operações que permitirão à máquina fazer as devidas buscas e comparações. Estas operações
-serão definidas mais abaixo.*)
-
-(** A definição da operação "variable opening", ou seja, abertura de variáveis é dada abaixo:*)
+(** Para trabalhar apenas com termos válidos, i.e. expressões sem
+índices de DeBruijn que não estejam ligados a nenhuma abstração ou
+substituição, precisamos definir algumas operações que permitirão à
+máquina fazer as devidas buscas e comparações. Estas operações serão
+definidas mais abaixo.  A definição da operação "variable opening", ou
+seja, abertura de variáveis é dada abaixo:*)
 
 Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   match t with
@@ -219,15 +237,14 @@ Fixpoint open_rec (k : nat) (u : pterm) (t : pterm) : pterm :=
   | pterm_labs t1    => pterm_labs (open_rec (S k) u t1)
   end.
 
-(** Esta operação é responsável por substituir todos os índices "k", por uma variável com
-nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, assim, ao aplicar
-a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.*)
-
-
 (** Com isso, a operação de abertura recursiva apenas para index's 0 é definida especialmente 
 como "open", onde u é o nome de uma variável qualquer e t é um pré-termo, logo abaixo:*)
 
 Definition open t u := open_rec 0 u t.
+
+(** Esta operação é responsável por substituir todos os índices "k", por uma variável com
+nome qualquer. Por exemplo, digamos que tenhamos o pré-termo $\lambda.0 y$, assim, ao aplicar
+a operação $ {0 ~> x} \lambda.0 y$ teremos o seguinte resultado: $\lambda.x y$.*)
 
 (** Esta definição será extremamente útil nas provas mais abaixo, devido à maior facilidade com relação
 à trabalhar com qualquer index k, e para garantir que estamos trabalhando com termos válidos.*)
@@ -288,8 +305,7 @@ definição: Um termo é um pré-termo sem nenhuma variável ligada inválida, o
 que após uma abertura no index 0, por uma variável nomeada livre x, torna-se um termo fechado.
 A definição está logo abaixo:*)
 
-Definition body t :=
-  exists L, forall x, x \notin L -> term (t ^ x).
+Definition body t := exists L, forall x, x \notin L -> term (t ^ x).
 
 (** Perceba que a definição de body foi utilizada na definição recursiva de termo, para
 representar as abtrações válidas semanticamente, segundo os conceitos aqui já apresentados.*)
@@ -329,11 +345,11 @@ Inductive lterm : pterm -> Prop :=
 si uma abstração marcada, aonde após uma abertura recursiva do index 0 com uma variável nomeada 
 livre qualquer x, torna-se um termo marcado:*)
 
-Definition lbody t :=
-  exists L, forall x, x \notin L -> lterm (t ^ x).
+Definition lbody t := exists L, forall x, x \notin L -> lterm (t ^ x).
 
+(* begin hide *)
 Hint Constructors lterm term.
-
+(* end hide *)
 (* This claim is false! because
 
 Lemma lterm_implies_term: forall t, lterm t -> term t.
@@ -352,19 +368,29 @@ Admitted. *)
 
 (** * Definições técnicas e explanação teórica *)
 
-(** Para auxiliar nas provas são necessárias algumas definições no assistente de provas. Existem casos em que é melhor
-seguir uma prova por indução na estrutura, nestes casos, o assistente consegue lidar bem com seus pŕoprios comandos. No entanto,
-quando precisamos trabalhar com provas no tamanho dos termos, muitas vezes são necessárias definições para contar o tamanho do
-tipo que estamos lidando. E posteriormente, essas definições são utilizadas para definir induções no tamanho específicas para o 
-domínio em que estamos trabalhando. Não vamos apresentar estas definições neste trabalho, por serem muito técnicas e poderem
-ser facilmente encontradas em outros trabalhos da literatura como em \cite{paulin1993inductive} que aborda a construção de
-provas indutivas usando o Coq. *)
+(** Para auxiliar nas provas são necessárias algumas definições no
+assistente de provas. Existem casos em que é melhor seguir uma prova
+por indução na estrutura, nestes casos, o assistente consegue lidar
+bem com seus pŕoprios comandos. No entanto, quando precisamos
+trabalhar com provas no tamanho dos termos, muitas vezes são
+necessárias definições para contar o tamanho do tipo que estamos
+lidando. E posteriormente, essas definições são utilizadas para
+definir induções no tamanho específicas para o domínio em que estamos
+trabalhando. Não vamos apresentar estas definições neste trabalho, por
+serem muito técnicas e poderem ser facilmente encontradas em outros
+trabalhos da literatura como em %\cite{Paulin93}% que aborda
+a construção de provas indutivas usando o Coq. *)
 
-(** No trabalho de \cite{Ch11} e na notação de nomes locais é necessária a definição de operações de
-abertura e fechamento dos termos. As operações de abertura e fechamento manipulam os index's e nomes, e têm como objetivo controlar
-e tornar possível a decisão de se um termo é ou não fechado, ou seja, possui uma sintaxe válida. Demonstramos como as operações de abertura (open)
-são definidas, mas não iremos mostrar essas definições para as operações de fechamento
-neste trabalho, pois as mesmas podem ser encontradas no próprio trabalho de \cite{Ch11}, e não foram utilizadas em nossa provas. *)
+(** No trabalho de %\cite{Ch11}% e na notação de nomes locais é
+necessária a definição de operações de abertura e fechamento dos
+termos. As operações de abertura e fechamento manipulam os index's e
+nomes, e têm como objetivo controlar e tornar possível a decisão de se
+um termo é ou não fechado, ou seja, possui uma sintaxe
+válida. Demonstramos como as operações de abertura (open) são
+definidas, mas não iremos mostrar essas definições para as operações
+de fechamento neste trabalho, pois as mesmas podem ser encontradas no
+próprio trabalho de %\cite{Ch11}%, e não foram utilizadas em nossa
+provas. *)
 
 (* begin hide *)
 Fixpoint pterm_size (t : pterm) : nat :=
@@ -1415,9 +1441,9 @@ estes termos seguem algumas restrições. Podemos dizer que, estes termos são o
 de uma beta redução em um redex específico de um termo e estes dois termos participam portanto de uma relação. Como a definição de termo 
 é recursiva, e uma aplicação ocorre entre dois termos, então precisamos deixar claro para a máquina que, primeiro as beta reduções que ocorrerem
 tanto à esquerda, quanto à direita, em uma aplicação relacionam o termo anterior, ao termo resultante. Além disso, também precisamos relacionar
-os termos resultantes de uma redução em uma abstração, estão relacionados com os termos que possuiam a abstração. Desse modo, definimos como
-abaixo o feixo contextual transitivo para o conjunto dos termos, e para o conjunto um pouco mais extenso dos termos marcados. *)
+os termos resultantes de uma redução em uma abstração, estão relacionados com os termos que possuiam a abstração. *)
 
+(* begin hide *)
 Inductive contextual_closure (R: Rel pterm) : Rel pterm :=
   | redex : forall t s, R t s -> contextual_closure R t s
   | app_left : forall t t' u, contextual_closure R t t' -> term u ->
@@ -1438,7 +1464,7 @@ Inductive lcontextual_closure (R: Rel pterm) : Rel pterm :=
   | l_abs_in : forall t t' L, (forall x, x \notin L -> lcontextual_closure R (t^x) (t'^x)) ->
                                lcontextual_closure R (pterm_labs t) (pterm_labs t').
 
-(** De outra forma, também é necessário definir a enésima beta redução. A enésima beta redução consiste na aplicação de n beta reduções
+(* De outra forma, também é necessário definir a enésima beta redução. A enésima beta redução consiste na aplicação de n beta reduções
 em um termo. Para definir esta operação para a máquina, precisamos de uma definição auxiliar de aplicação transitiva em um determinado termo,
 por meio do conceito de relação. Basicamente precisamos fazer com que a máquina percorra recursivamente um termo, dentre os seus diversos pré-termos,
 até encontrar todas as beta reduções que fazem um termo a, chegar à um termo b, após n beta reduções. Os casos base são onde existe apenas uma
@@ -1456,7 +1482,6 @@ Inductive refltrans' (red: Rel pterm) : Rel pterm :=
 | rtrans': forall a b c, red a b -> refltrans' red b c -> refltrans' red a c.
 
 Lemma refltrans_equiv: forall (R: Rel pterm) (a b: pterm), refltrans R a b <-> refltrans' R a b.
-(* begin hide *)
 Proof.
   intros R a b; split.
   - intro H.
@@ -1704,15 +1729,11 @@ Proof.
     admit.
   - simpl.
 Admitted.
-(* end hide *)
 
-(* begin hide *)
 Lemma term_fvar_to_term: forall t1 t2 t3 x, term (phi (pterm_app t1 t2)^x) -> term t3 -> term (phi (pterm_app t1 t2)^^t3). 
 Proof.
 Admitted.  
-(* end hide *)
 
-(* begin hide *)
 Lemma term_phi_open: forall t1 t2 x L,  x \notin L -> term (phi (t1 ^ x)) -> term (phi t2) -> term (phi t1 ^^ phi t2).
 Proof.
   intro t; induction t.
@@ -1736,7 +1757,7 @@ Proof.
     assert(teste := IHt t2 x L HL).
     admit.  Gabriel *)
 Admitted.
-(* end hide *)
+
   (*
   intro t; induction t.
   - intro H; inversion H.
@@ -1797,7 +1818,6 @@ Proof.
 Qed.    
  *)
 
-(* begin hide *)
 Lemma lterm_preserves_fvar : forall M x, erase M = (pterm_fvar x) -> M = (pterm_fvar x).
 Proof.
   induction M.
@@ -1816,38 +1836,28 @@ Proof.
     simpl in H.
     inversion H.
 Qed.
-(* end hide *)
 
-(* begin hide *)
 Lemma lterm_preserves_bvar : forall M n, erase M = (pterm_bvar n) -> M = (pterm_bvar n).
 Proof.
   Admitted.
-(* end hide *)
 
-(* begin hide *)
 Lemma lterm_preserves_app : forall M N L, erase M = (pterm_app N L) -> exists N' L', M = (pterm_app N' L').
 Proof.
 (*
   exists (erase N).
   exists (erase L). *)
   Admitted.
-(* end hide *)
 
-(* begin hide *)
 Lemma lterm_preserves_abs : forall M N, erase M = (pterm_abs N) -> exists N', M = (pterm_abs N') \/ M = (pterm_labs N').
 Proof.
 Admitted.
-(* end hide *)
 
-(* begin hide *)
 Lemma open_rec_preserves_labs: forall t u k, (open_rec k u (pterm_labs t)) = (pterm_labs (open_rec (S k) u t)).
 Proof.
   intros t u k .
   reflexivity.
 Qed.
-(* end hide *)
 
-(* begin hide *)
 Lemma erase_open_rec : forall (M N: pterm) (k : nat), erase ({k ~> N} M) = {k ~> (erase N)} (erase M).
 Proof.
   induction M.
@@ -1872,18 +1882,14 @@ Proof.
     f_equal.
     apply IHM.
 Qed.
-(* end hide *)
 
-(* begin hide *)
 Corollary erase_open : forall M N: pterm, erase (M ^^ N) = (erase M) ^^ (erase N).
 Proof.
   unfold open.
   intros M N.
   apply  erase_open_rec.
 Qed.
-(* end hide *)
 
-(* begin hide *)
 Lemma phi_subst_rec: forall (M N: pterm) (k: nat), term N -> phi ({k ~> N} M) = {k ~> (phi N)}(phi M).
 Proof.
   induction M.
@@ -1943,26 +1949,22 @@ Proof.
   (*   f_equal. *)
   (*   apply IHM. *)
 Admitted.    
-(* end hide *)
 
-(* begin hide *)
 Corollary phi_subst: forall M N, phi (M ^^ N) = (phi M) ^^ (phi N). 
 Proof.
   Admitted.
 (* end hide *)
 
 (** Na prova de barendregt para a confluência do cálculo lambda também é muito importante provar a propriedade de que, se um termo M reduz para um termo N, então o resultado da
- aplicação da função phi em M, também reduz para o resultado da aplicação da função phi no termo N. A difinição deste lema está logo abaixo.*)
+ aplicação da função phi em M, também reduz para o resultado da aplicação da função phi no termo N.*)
 
-Lemma phi_prop: forall M N : pterm, lterm M -> lterm N -> (M -->>lB N) -> (phi M) -->>B (phi N).
 (* begin hide *)
+Lemma phi_prop: forall M N : pterm, lterm M -> lterm N -> (M -->>lB N) -> (phi M) -->>B (phi N).
 Proof.
   intros M N Hterm1 Hterm2 H.
   induction H.
   - Admitted.
-(* end hide *)
 
-  
 (*                                       
 Lemma erase_prop : forall M N M' N': pterm, lterm M -> lterm N -> (M -->lB N) -> erase M = M' -> erase N = N' ->  (M' -->B N').
 Proof.
@@ -1987,7 +1989,6 @@ Proof.
   - Admitted.
  *)
 
-(* begin hide *)
 Lemma erase_prop_str: forall M' M N , pterm_app (pterm_abs M) N = erase M' -> exists u v, erase u = M -> erase v = N -> (M' = pterm_app (pterm_labs u) v) \/ (M' = pterm_app (pterm_abs u) v).
 Proof.
 Admitted.
@@ -1999,9 +2000,9 @@ fato de que se M reduz para N em n passos, sendo M e N termos pertencentes ao co
 de apagar marcas (erase) em M reduz ao resultado da aplicação da operação de apagar marcas em N. A definição para este lema está logo abaixo em 
 duas possíveis formas. Até o momento, não conseguimos completar nenhuma das duas provas ainda no coq.*)
 
+(* begin hide *)
 Lemma erase_prop1 : forall M N: pterm, term M -> term N -> (M -->B N) -> forall M' N', (erase M' = M) /\ (erase N' = N) ->  (M' -->lB N').
 Proof.
-(* begin hide *)
   intros M N HtM HtN Hred.
   
   induction Hred.
@@ -2020,10 +2021,8 @@ Proof.
     + admit. (* ok *)
     + assumption.
     + Admitted.*)
-(* end hide *)
 
 Lemma erase_prop : forall M N M' N': pterm, term M -> term N -> (M -->>B N) -> erase M' = M -> erase N' = N ->  (M' -->>lB N').
-(* begin hide *)
 Proof.
   intros M N M' N' HtM HtN Hred HeM HeN.
   induction Hred.
@@ -2046,17 +2045,13 @@ Lemma erase_lbeta_2313: forall t1 t2, t1 -->>B t2 -> (forall t1', erase(t1') = t
 Proof.
 Admitted.
 *)
-(* end hide *)
 
-(* begin hide *)
 Lemma phi_preserves_term: forall t, term t -> term (phi t).
 Proof.
   intros t H.
   induction H.
   Admitted.
-(* end hide *)
-  
-(* begin hide *)
+
 Lemma beta_phi_one_step: forall t1 t2, t1 -->lB t2 -> phi(t1) -->B phi(t2).
 Proof.
   intros t1 t2 H.
@@ -2080,16 +2075,13 @@ Proof.
   - apply beta_phi_one_step in H.
     apply atleast1; assumption.
   - Admitted.
-(* end hide *)
 
-
-(** Assim, também precisamos provar que dado um mesmo termo t, se t1 é o termo resultante da aplicação da função de apagar marcas
+(* Assim, também precisamos provar que dado um mesmo termo t, se t1 é o termo resultante da aplicação da função de apagar marcas
 em t, e t2 o resultado da aplicação da função phi em t, então t1 reduz em n passos para t2. Essa definição vai ser um artifício importante
 na prova do strip-lemma, ao seguir a estratégia de barendregt. A definição se encontra logo abaixo, mas ainda não conseguimos a formalizar
 em coq.*)
 
 Lemma erase_phi: forall t t1 t2, erase(t) = t1 -> phi(t) = t2 -> t1 -->>B t2.
-(* begin hide *)
 Proof.
   (*intros t0 t1 t2 Herase Hphi.
   induction t0.
@@ -2118,34 +2110,15 @@ Proof.
     apply reflex.
   - 
   Admitted.
-(* end hide *)
 
-(* begin hide *)
 Lemma term_erase: forall t, term t -> erase(t) = t.
 Proof.
   Admitted.
-(* end hide *)
 
-(* begin hide *)
 Lemma body_erase: forall t, body t -> erase(t) = t.
 Proof.
   Admitted.
 (* end hide *)
-
-(* begin hide *)
-  (* esconde código *)
-
-(** * Seção *)
-
-(** ** Subseção *)
-
-(** texto do relatório *)
-
-(* end hide *)
-
-(* end hide *)
-          
-
 
 (** * O strip_lemma *)
 
@@ -2208,21 +2181,23 @@ para nos ajudar a completar a prova mesmo de maneira generalizada, mas também a
   (** Dado esse contexto, dois caminhos podem ser seguidos: No primeiro, a definição do teorema poderia ser refeita, de uma
 maneira menos generalizada, abarcando as marcas e utilizando alguma ideia semelhante à apresentada na função lredex_count. O segundo 
 caminho, seria a construção de diversos lemas auxiliares que permitiriam com que o teorema geral pudesse ser provado. Na realidade
-o sucesso em realizar esta prova provavelmente depende um caminho intermediário entre essas duas opções. Atualmente, seguimos o
+o sucesso em realizar esta prova provavelmente depende um caminho intermediário entre essas duas opções. *)
+
+(* Atualmente, seguimos o
 caminho da criação de diversos lemas auxiliares, como vamos explanar mais abaixo. Mas, em vistas de ilustrar uma opção de prova 
-diferente, apresentamos abaixo uma definição menos genralizada para o teorema como exemplo: *)
+diferente, apresentamos abaixo uma definição menos genralizada para o teorema como exemplo: 
 
-  (** $ Theorem strip_lemma: forall  lterm_one t', term t t1 t2, erase(t') = t -> phi(t') = t1 ->
-t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3. $ *)
+ $ Theorem strip_lemma: forall  lterm_one t', term t t1 t2, erase(t') = t -> phi(t') = t1 ->
+t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3. $ 
 
-  (** Onde lterm_one é a definição de um termo marcado qualquer, que possui apenas uma marca. t' é um termo com as mesmas propriedades
+ Onde lterm_one é a definição de um termo marcado qualquer, que possui apenas uma marca. t' é um termo com as mesmas propriedades
 estruturais de t, exceto pelo redex marcado, sendo isto definido pela igualdade $ erase(t') = t $ e t1 é o termo cuja estrutura
 reduz de t com uma beta redução no redex marcado, o que é nesse caso definido pela igualdade $ phi(t') = t1 $. Assim, como t é um
 termo qualquer com ao menos um redex, a prova é suficiente para o strip_lemma. Lembramos que essa pode não ser a melhor abordagem para
 um assistente de provas, mas exemplifica muito bem o que \cite{barendregt} (melhorar citação) fez em sua prova, podendo ser tomado como base para o sucesso
-na formalização dessa prova. *)
+na formalização dessa prova.
 
-(** *** Prova formal do strip_lemma, com a definição generalizada *)
+ Prova formal do strip_lemma, com a definição generalizada 
 
 Theorem strip_lemma: forall  t t1 t2, t -->B t1 -> t -->>B t2 -> exists t3, t1 -->>B t3 /\ t2 -->>B t3.
 Proof.
@@ -2311,5 +2286,5 @@ trabalhando. *)
     clear H H5.
     Admitted.
 
-
+*)
 
